@@ -1,0 +1,28 @@
+# Personal agent instructions — never shared
+*.local.md
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Node / Vite
+node_modules/
+dist/
+dev-dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Environment and Firebase local state
+.env
+.env.*
+!.env.example
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
