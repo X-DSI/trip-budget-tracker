@@ -48,7 +48,7 @@ test('an organiser plans a trip and a second adult joins by link @trip @layout',
   page,
   browser,
 }, testInfo) => {
-  const suffix = testInfo.project.name;
+  const suffix = `${testInfo.project.name}-${testInfo.retry}`;
   await signIn(page, `organiser-${suffix}`, 'Olive Organiser');
   await createTrip(page, `Ooty trip ${suffix}`);
 
@@ -85,21 +85,25 @@ test('an organiser plans a trip and a second adult joins by link @trip @layout',
   await other.close();
 
   // The organiser sees the new person in Family B.
-  await expect(page.getByText('Gita Guest', { exact: true })).toBeVisible();
+  await expect(page.getByText('Gita Guest', { exact: true }).first()).toBeVisible();
 });
 
 test('editing a leg offline shows it at once and syncs later @offline', async ({
   page,
   context,
 }, testInfo) => {
-  const suffix = testInfo.project.name;
+  const suffix = `${testInfo.project.name}-${testInfo.retry}`;
   await signIn(page, `offline-${suffix}`, 'Omar Offline');
   await createTrip(page, `Offline trip ${suffix}`);
   await addLeg(page, 'Car', 'Hosur', 'Coorg', '280');
   await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
 
   await context.setOffline(true);
-  await page.getByRole('button', { name: 'Edit' }).nth(1).click(); // [0] is the trip's Edit link
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: 'Hosur → Coorg' })
+    .getByRole('button', { name: 'Edit' })
+    .click();
   const sheet = page.getByRole('dialog');
   await sheet.getByLabel('Distance (km)').fill('310');
   await sheet.getByRole('button', { name: 'Save leg' }).click();
