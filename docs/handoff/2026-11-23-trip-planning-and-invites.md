@@ -4,7 +4,7 @@ status: open
 assignee: agent:any
 base_sha: 8057ca1
 adrs: [2026-11-23-multi-trip-data-model.md, 2026-11-23-google-sign-in-and-invite-links.md, 2026-11-23-firestore-with-offline-persistence.md]
-plan_pr: null
+plan_pr: 1
 impl_pr: null
 review: human
 ---
