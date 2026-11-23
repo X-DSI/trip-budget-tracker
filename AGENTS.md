@@ -64,9 +64,11 @@ and sync later. Treat a feature that breaks offline as broken.
 | Firestore rules tests (starts the emulator; needs Java 21) | `npm run test:rules` |
 | End-to-end tests, phone + desktop (builds, starts emulators) | `npm run test:e2e` |
 | Production build | `npm run build` |
-| Deploy rules and indexes (maintainer) | `npm run deploy:rules` |
+| Deploy rules and indexes by hand (CI normally does this) | `npm run deploy:rules:dev` / `npm run deploy:rules:prod` |
 | Regenerate PWA icons | `python3 scripts/make-icons.py public` |
 | Check commit identity locally | `bash <(curl -fsSL https://raw.githubusercontent.com/X-DSI/agent-workflow/main/.github/scripts/check-commit-identity.sh) origin/main HEAD` |
 
 E2E builds use `.env.e2e` (demo project `demo-trip-budget`, emulators only) and expose a test-only
-`window.__e2eSignIn`. Never point tests at the live project.
+`window.__e2eSignIn`. Never point tests at the live project. Two Firebase projects exist:
+`x-dsi-trip-budget-dev` (PR previews, dry runs) and `x-dsi-trip-budget` (the real trip) — see the
+[dev/prod ADR](docs/adr/2026-11-23-separate-dev-and-prod-projects.md).

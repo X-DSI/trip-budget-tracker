@@ -1,11 +1,11 @@
 ---
 title: Host on Firebase Hosting, with a preview channel per pull request
-status: Accepted
+status: Superseded
 date: 2026-11-23
 deciders: [X-DSI]
 origin: web
 supersedes: null
-superseded_by: null
+superseded_by: 2026-11-23-separate-dev-and-prod-projects.md
 review: auto
 ---
 

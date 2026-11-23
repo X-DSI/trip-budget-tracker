@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore --project demo-trip-budget \"vitest run --config vitest.rules.config.ts\"",
     "test:e2e": "playwright test",
-    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes --project x-dsi-trip-budget"
+    "deploy:rules:dev": "firebase deploy --only firestore:rules,firestore:indexes --project dev",
+    "deploy:rules:prod": "firebase deploy --only firestore:rules,firestore:indexes --project prod"
   },
   "dependencies": {
     "firebase": "^13.4.0",
