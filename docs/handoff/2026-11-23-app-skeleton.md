@@ -1,11 +1,11 @@
 ---
 title: App skeleton — PWA shell, Google sign-in, Firestore offline, CI and hosting
-status: in-progress
+status: done
 assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-offline-first-pwa.md, 2026-11-23-firestore-with-offline-persistence.md, 2026-11-23-google-sign-in-and-invite-links.md, 2026-11-23-firebase-hosting.md]
 plan_pr: 1
-impl_pr: null
+impl_pr: 2
 review: human
 ---
 
@@ -79,3 +79,30 @@ None.
 3. Add `FIREBASE_SERVICE_ACCOUNT` as a repository secret (from `firebase init hosting:github` or a
    service-account key with Hosting Admin).
 4. Approve the PR: it touches code-owned `.github/` and `firestore.rules`.
+
+## Outcome
+**Status:** partial (code done; the two manual criteria need the Firebase setup)  
+**Commits:** 854b990..369e058 · **PR:** #2 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45190539397
+
+### Verified acceptance criteria
+- [x] Lint, typecheck and unit tests pass — `lint, typecheck, unit tests, build` job in the CI run above
+- [x] Production build emits a service worker and manifest — same job, step "Service worker and manifest are emitted"
+- [x] Rules deny reading another user's profile and allow your own — `firestore rules (emulator)` job in the CI run above
+- [x] With the network off, a reload still renders the shell and the offline indicator — `e2e` job, `@offline` test on phone and desktop
+- [x] Phone shows bottom tabs and no sidebar; desktop the reverse — `e2e` job, `@layout` test on phone and desktop
+
+### Unverified (manual) criteria
+- [ ] A PR gets a working preview URL and Google sign-in works on it — blocked until `FIREBASE_SERVICE_ACCOUNT`, the `VITE_FIREBASE_*` variables and the preview domain in Auth's authorised domains are set
+- [ ] Installs to the home screen on Android Chrome and iOS Safari and opens offline — needs a live deploy
+
+### Deviations
+- **Sign-in tries a popup first on every device and falls back to a redirect** if popups aren't available. The handoff said "redirect on mobile". But browser storage partitioning breaks redirect sign-in when `authDomain` differs from the app's domain, and previews run on different domains. Popups work in modern mobile browsers and installed PWAs. For live, set `VITE_FIREBASE_AUTH_DOMAIN=x-dsi-trip-budget.web.app` so the redirect fallback also works there.
+- `firestore.rules` also restricts `users/{uid}` to known fields. It is tighter than the handoff asked for, not looser.
+- Added a test-only `window.__e2eSignIn`. It exists only in builds made with `VITE_USE_EMULATORS=true` (the e2e mode); production builds don't contain it.
+- TypeScript is pinned to 6.0, because typescript-eslint doesn't support TypeScript 7 yet.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- Should PR previews use a separate `x-dsi-trip-budget-dev` project, so previews never write to the real trip?
