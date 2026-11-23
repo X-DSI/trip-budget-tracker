@@ -19,7 +19,7 @@
 |---|---|---|---|---|---|
 | 1 | [App skeleton — PWA shell, sign-in, Firestore offline, CI, hosting](handoff/2026-11-23-app-skeleton.md) | — | X-DSI-agent · **done** (#4) | human | Tue 24 Nov |
 | 1 | [Split and settlement engine](handoff/2026-11-23-split-engine.md) | — (parallel) | X-DSI-agent · **done** (#3) | auto | Tue 24 Nov |
-| 2 | [Trip planning, families and invite links](handoff/2026-11-23-trip-planning-and-invites.md) | skeleton | X-DSI-agent · in review | human | Thu 26 Nov |
+| 2 | [Trip planning, families and invite links](handoff/2026-11-23-trip-planning-and-invites.md) | skeleton | X-DSI-agent · **done** (#5) | human | Thu 26 Nov |
 | 3 | [Dashboard — countdown, welcome, summary](handoff/2026-11-23-dashboard.md) | trip planning | agent:any | auto | Fri 27 Nov |
 
 ## Next planning session
