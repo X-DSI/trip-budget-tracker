@@ -1,7 +1,7 @@
 ---
 title: Split and settlement engine — pure TypeScript, fully unit-tested
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-money-as-integer-paise.md, 2026-11-23-expenses-are-the-source-of-truth.md, 2026-11-23-split-modes.md]
 plan_pr: 1
