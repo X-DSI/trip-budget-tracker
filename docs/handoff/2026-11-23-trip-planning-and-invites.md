@@ -1,7 +1,7 @@
 ---
 title: Trip planning, families and invite links
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-multi-trip-data-model.md, 2026-11-23-google-sign-in-and-invite-links.md, 2026-11-23-firestore-with-offline-persistence.md]
 plan_pr: 1
