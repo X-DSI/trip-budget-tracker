@@ -5,6 +5,7 @@ import { AppShell } from './AppShell';
 import { titleForPath } from './nav';
 
 vi.mock('virtual:pwa-register/react', () => ({ useRegisterSW: vi.fn() }));
+vi.mock('../../features/trips/TripSwitcher', () => ({ TripSwitcher: () => null }));
 
 describe('titleForPath', () => {
   it('names each tab and its sub-pages', () => {

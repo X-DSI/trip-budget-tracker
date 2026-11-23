@@ -20,5 +20,8 @@ export function titleForPath(pathname: string): string {
   const match = NAV_ITEMS.find((item) =>
     item.end ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`),
   );
-  return match?.label ?? 'Trip Budget';
+  if (match) return match.label;
+  if (pathname === '/trips/new') return 'New trip';
+  if (pathname.startsWith('/join/')) return 'Join a trip';
+  return 'Trip Budget';
 }

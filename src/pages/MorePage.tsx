@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { signOutUser } from '../lib/auth';
 import { useAuth } from '../features/auth/AuthProvider';
+import { MyTrips } from '../features/trips/MyTrips';
 
 export function MorePage() {
   const { user } = useAuth();
@@ -27,10 +28,7 @@ export function MorePage() {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-        <h2 className="font-medium text-slate-900">My trips</h2>
-        <p className="mt-1 text-sm text-slate-600">Your trips will be listed here.</p>
-      </div>
+      <MyTrips />
 
       <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
         {confirming ? (
