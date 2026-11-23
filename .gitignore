@@ -26,3 +26,4 @@ test-results/
 firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
+!.env.e2e

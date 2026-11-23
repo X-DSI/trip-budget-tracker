@@ -1,0 +1,78 @@
+name: deploy
+
+# Preview channel per pull request; live channel on every push to main.
+# Both skip cleanly until the FIREBASE_SERVICE_ACCOUNT secret exists.
+# Release freeze (docs/adr/2026-11-23-release-freeze-for-first-trip.md): merges to main go live.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: deploy-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  HAS_FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+  VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+  VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+  VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+  VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
+  VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+  VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip without Firebase credentials
+        if: env.HAS_FIREBASE_SA != 'true'
+        run: echo "::notice::FIREBASE_SERVICE_ACCOUNT is not set; skipping the preview deploy."
+      - uses: actions/checkout@v5
+        if: env.HAS_FIREBASE_SA == 'true'
+      - uses: actions/setup-node@v5
+        if: env.HAS_FIREBASE_SA == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: env.HAS_FIREBASE_SA == 'true'
+        run: npm ci && npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: env.HAS_FIREBASE_SA == 'true'
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: x-dsi-trip-budget
+          expires: 7d
+
+  live:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Skip without Firebase credentials
+        if: env.HAS_FIREBASE_SA != 'true'
+        run: echo "::notice::FIREBASE_SERVICE_ACCOUNT is not set; skipping the live deploy."
+      - uses: actions/checkout@v5
+        if: env.HAS_FIREBASE_SA == 'true'
+      - uses: actions/setup-node@v5
+        if: env.HAS_FIREBASE_SA == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: env.HAS_FIREBASE_SA == 'true'
+        run: npm ci && npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: env.HAS_FIREBASE_SA == 'true'
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: x-dsi-trip-budget
+          channelId: live

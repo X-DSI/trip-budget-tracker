@@ -46,13 +46,27 @@ and sync later. Treat a feature that breaks offline as broken.
 | `docs/adr/` | Decided ADRs (code-owned); `docs/adr/proposed/` for proposals |
 | `docs/handoff/` | Work orders and their Outcomes |
 | `docs/data-model.md` | Firestore collections, fields and access rules |
-| `src/` | *(from the app-skeleton handoff)* the React app |
-| `firestore.rules`, `firebase.json` | *(from the app-skeleton handoff)* Firebase config |
+| `src/lib/` | Firebase setup, auth, sync tracking — the only place (with `*.data.ts` hooks) that imports Firebase |
+| `src/features/`, `src/pages/`, `src/components/` | Feature code, routes and shared UI |
+| `tests/rules/`, `e2e/` | Firestore rules tests and Playwright tests |
+| `firestore.rules`, `firebase.json` | Security rules (code-owned) and Firebase config |
 
 ## Commands
 
-The app-skeleton handoff fills these in.
-
 | Task | Command |
 |---|---|
+| Install | `npm ci` |
+| Dev server (real project, needs `.env.local`) | `npm run dev` |
+| Dev server against local emulators | `npm run dev:emulators` |
+| Lint + format check | `npm run lint` (fix formatting with `npm run format`) |
+| Typecheck | `npm run typecheck` |
+| Unit tests | `npm test` |
+| Firestore rules tests (starts the emulator; needs Java 21) | `npm run test:rules` |
+| End-to-end tests, phone + desktop (builds, starts emulators) | `npm run test:e2e` |
+| Production build | `npm run build` |
+| Deploy rules and indexes (maintainer) | `npm run deploy:rules` |
+| Regenerate PWA icons | `python3 scripts/make-icons.py public` |
 | Check commit identity locally | `bash <(curl -fsSL https://raw.githubusercontent.com/X-DSI/agent-workflow/main/.github/scripts/check-commit-identity.sh) origin/main HEAD` |
+
+E2E builds use `.env.e2e` (demo project `demo-trip-budget`, emulators only) and expose a test-only
+`window.__e2eSignIn`. Never point tests at the live project.
