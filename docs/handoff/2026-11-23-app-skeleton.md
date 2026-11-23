@@ -1,7 +1,7 @@
 ---
 title: App skeleton — PWA shell, Google sign-in, Firestore offline, CI and hosting
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-offline-first-pwa.md, 2026-11-23-firestore-with-offline-persistence.md, 2026-11-23-google-sign-in-and-invite-links.md, 2026-11-23-firebase-hosting.md]
 plan_pr: 1
