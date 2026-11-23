@@ -1,7 +1,16 @@
 // Live Firestore subscriptions for React, served from the offline cache when there's no network.
 // Every subscription reports its pending writes to the sync tracker.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+/**
+ * Listeners can fail transiently: a trip created offline (or a moment ago) doesn't exist on the
+ * server yet, so its subcollections are denied until the trip's own write lands. Firestore ends a
+ * listener on any error, so re-subscribe with backoff instead of giving up.
+ */
+export function retryDelay(attempt: number): number {
+  return Math.min(30_000, 500 * 2 ** attempt);
+}
 import {
   onSnapshot,
   type DocumentReference,
@@ -36,14 +45,19 @@ export function useLiveQuery<T>(
     error: null,
   });
 
+  const [attempt, setAttempt] = useState(0);
+  const failures = useRef(0);
+
   useEffect(() => {
     if (!key) return;
     const source = `query:${key}`;
+    let retry: ReturnType<typeof setTimeout> | undefined;
     const unsubscribe = onSnapshot(
       makeQuery(),
       { includeMetadataChanges: true },
       (snap) => {
         reportPending(source, snap.metadata.hasPendingWrites);
+        if (!snap.metadata.fromCache) failures.current = 0;
         setState({
           key,
           data: snap.docs.map(map),
@@ -55,15 +69,17 @@ export function useLiveQuery<T>(
       (error) => {
         reportPending(source, false);
         setState((s) => ({ ...s, key, loading: false, error }));
+        retry = setTimeout(() => setAttempt((a) => a + 1), retryDelay(failures.current++));
       },
     );
     return () => {
+      clearTimeout(retry);
       reportPending(source, false);
       unsubscribe();
     };
     // makeQuery and map are recreated each render; `key` identifies the query.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, attempt]);
 
   if (!key) return { data: [], loading: false, fromCache: false, error: null };
   if (state.key !== key) return { data: [], loading: true, fromCache: false, error: null };
@@ -84,14 +100,19 @@ export function useLiveDoc<T>(
     error: null,
   });
 
+  const [attempt, setAttempt] = useState(0);
+  const failures = useRef(0);
+
   useEffect(() => {
     if (!key) return;
     const source = `doc:${key}`;
+    let retry: ReturnType<typeof setTimeout> | undefined;
     const unsubscribe = onSnapshot(
       makeRef(),
       { includeMetadataChanges: true },
       (snap) => {
         reportPending(source, snap.metadata.hasPendingWrites);
+        if (!snap.metadata.fromCache) failures.current = 0;
         setState({
           key,
           data: snap.exists() ? map(snap) : null,
@@ -102,15 +123,17 @@ export function useLiveDoc<T>(
       },
       (error) => {
         reportPending(source, false);
-        setState({ key, data: null, loading: false, fromCache: false, error });
+        setState((s) => ({ ...s, key, loading: false, error }));
+        retry = setTimeout(() => setAttempt((a) => a + 1), retryDelay(failures.current++));
       },
     );
     return () => {
+      clearTimeout(retry);
       reportPending(source, false);
       unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, attempt]);
 
   if (!key) return { data: null, loading: false, fromCache: false, error: null };
   if (state.key !== key) return { data: null, loading: true, fromCache: false, error: null };
