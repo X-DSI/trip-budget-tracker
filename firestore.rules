@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Security rules for trip-budget-tracker. See docs/data-model.md for the access table.
+// Skeleton stage: only each user's own profile document is reachable. Trip rules arrive with
+// the trip-planning handoff.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(
+             ['displayName', 'photoURL', 'activeTripId', 'createdAt', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // Everything else is closed until a handoff opens it deliberately.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "x-dsi-trip-budget-dev",
+    "dev": "x-dsi-trip-budget-dev",
+    "prod": "x-dsi-trip-budget"
+  }
+}

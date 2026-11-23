@@ -1,11 +1,11 @@
 ---
 title: Split and settlement engine — pure TypeScript, fully unit-tested
-status: open
-assignee: agent:any
+status: done
+assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-money-as-integer-paise.md, 2026-11-23-expenses-are-the-source-of-truth.md, 2026-11-23-split-modes.md]
 plan_pr: 1
-impl_pr: null
+impl_pr: 3
 review: auto
 ---
 
@@ -60,3 +60,29 @@ Any change to the rounding rule, the split-mode semantics, or the data-model fie
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** 27b4b27..4aaab75 · **PR:** #3 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45191293141
+
+### Verified acceptance criteria
+All of these ran in the `lint, typecheck, unit tests, build` job of the CI run above (`npm test` includes `src/domain`):
+- [x] ₹4,000 per head over 2/4/3/3 gives A/B/C/D 66667/133333/100000/100000 — `allocate.test.ts`, `split.test.ts`
+- [x] Property: `allocate` always sums to the total and stays within 1 paisa (2,000 seeded runs) — `allocate.test.ts`
+- [x] Itemized: own dishes + per-head shared dishes + proportional extras; shares sum to the bill (plus 1,000-run property test) — `split.test.ts`
+- [x] `custom` shares that don't add up are rejected — `split.test.ts`
+- [x] Deleted expenses and inactive non-participating families are excluded; nets sum to 0 — `settle.test.ts`
+- [x] Four families settle in at most 3 payments, and applying them zeroes every balance (1,000-run property test) — `settle.test.ts`
+- [x] `upiLink` encodes names with spaces and `&` — `upi-budget.test.ts`
+- [x] `src/domain` line coverage ≥ 95% — enforced by the threshold in `vitest.config.ts`; currently 97.9%
+
+### Deviations
+- `balances` returns `sent` and `received` as well as `paid`, `share` and `net`, so the Balances screen can show settlements separately.
+- The UPI link keeps the "@" in the payee VPA literal, because some UPI apps don't decode "%40". Names and notes are percent-encoded, and notes are capped at 80 characters.
+- Amounts are capped at ₹1 crore (`MAX_PAISE`), which keeps all intermediate maths in safe integers.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
