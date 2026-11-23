@@ -1,6 +1,7 @@
 import { AppLogo } from '../Icons';
 import { OnlineIndicator } from '../OnlineIndicator';
 import { PendingSyncBadge } from '../PendingSyncBadge';
+import { TripSwitcher } from '../../features/trips/TripSwitcher';
 
 export function TopBar({ title }: { title: string }) {
   return (
@@ -13,6 +14,7 @@ export function TopBar({ title }: { title: string }) {
         <h1 className="truncate text-base font-semibold text-slate-900 lg:text-lg">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
+        <TripSwitcher />
         <PendingSyncBadge />
         <OnlineIndicator />
       </div>

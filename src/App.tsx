@@ -7,6 +7,11 @@ import { ReloadPrompt } from './components/ReloadPrompt';
 import { HomePage } from './pages/HomePage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
 import { MorePage } from './pages/MorePage';
+import { ActiveTripProvider } from './features/trips/ActiveTripProvider';
+import { TripPage } from './features/trips/TripPage';
+import { EditTripPage, NewTripPage } from './features/trips/TripFormPage';
+import { JoinPage } from './features/trips/JoinPage';
+import { ErrorToasts } from './components/ErrorToasts';
 
 const router = createBrowserRouter([
   { path: '/signin', element: <SignInPage /> },
@@ -14,20 +19,17 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireAuth>
-        <AppShell />
+        <ActiveTripProvider>
+          <AppShell />
+        </ActiveTripProvider>
       </RequireAuth>
     ),
     children: [
       { index: true, element: <HomePage /> },
-      {
-        path: 'trip',
-        element: (
-          <ComingSoonPage
-            title="Trip details"
-            body="Dates, destination, distance, cars, buses, trains and flights, families and invites."
-          />
-        ),
-      },
+      { path: 'trip', element: <TripPage /> },
+      { path: 'trip/edit', element: <EditTripPage /> },
+      { path: 'trips/new', element: <NewTripPage /> },
+      { path: 'join/:code', element: <JoinPage /> },
       {
         path: 'expenses',
         element: (
@@ -67,6 +69,7 @@ export function App() {
     <AuthProvider>
       <RouterProvider router={router} />
       <ReloadPrompt />
+      <ErrorToasts />
     </AuthProvider>
   );
 }

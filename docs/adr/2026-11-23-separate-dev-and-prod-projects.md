@@ -35,7 +35,8 @@ expenses or loosen its security rules. The maintainer chose the industry-standar
 ## Consequences
 - Maintainer actions: create the dev project the same way as prod. Create one deploy service
   account per project with the roles Firebase Hosting Admin, Firebase Rules Admin, Cloud Datastore
-  Index Admin, Firebase Authentication Admin, API Keys Viewer and Cloud Run Viewer. Fill in both
+  Index Admin, Firebase Authentication Admin, API Keys Viewer, Cloud Run Viewer and Service Usage
+  Consumer (the CLI checks that APIs are enabled before deploying rules). Fill in both
   GitHub environments; optionally require approval on `production` during the trip.
 - The release freeze applies to the `production` environment only; dev can keep moving.
 - Dry-run data and tests live in dev. The real trip is created only in prod.

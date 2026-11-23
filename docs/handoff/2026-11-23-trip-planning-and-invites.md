@@ -1,11 +1,11 @@
 ---
 title: Trip planning, families and invite links
-status: open
-assignee: agent:any
+status: done
+assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-multi-trip-data-model.md, 2026-11-23-google-sign-in-and-invite-links.md, 2026-11-23-firestore-with-offline-persistence.md]
 plan_pr: 1
-impl_pr: null
+impl_pr: 5
 review: human
 ---
 
@@ -61,3 +61,27 @@ table.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done (one manual check left for the maintainer)  
+**Commits:** 0792f8e..c2f1a53 · **PR:** #5 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45228820552
+
+### Verified acceptance criteria
+- [x] Rules: non-members can't read; members can't edit details, legs, families or roles; organisers can; joining fails without a valid active invite, with a dead one, or with another trip's; nobody changes their own role or lists invites — `firestore rules (emulator)` job, `tests/rules/trips.test.ts`
+- [x] E2E @trip: organiser creates a trip with 2 legs and 4 families (2/4/3/3), creates an invite; a second user opens it, signs in, joins, picks a family and sees the trip — `e2e` job, phone and desktop
+- [x] E2E @offline: a leg edited offline shows at once with the pending badge, and syncs when back online — `e2e` job, phone and desktop
+- [x] No horizontal scroll at 390×844 and 1440×900 — `e2e` job (@layout checks inside the @trip test)
+
+### Unverified (manual) criteria
+- [ ] Sharing the invite link from an Android phone opens WhatsApp's share sheet — needs a real phone on the PR preview
+
+### Deviations
+- **The join page doesn't show the trip name before joining.** Non-members can't read the trip, and showing it first would need the name copied onto the invite, which changes `docs/data-model.md`. Instead, people tap "Join the trip" and see the trip name and dates straight after, while choosing their family.
+- **Any member may add a family**, not only during their own join batch. The rules can't tell "while joining" from "later" without a data-model change. Organisers can still edit or deactivate any family.
+- **Bug found and fixed:** live listeners now re-subscribe with backoff after an error. Without this, a trip created offline (or moments ago) had its legs and families denied by the server until the trip itself synced, and those lists never recovered.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- Should the invite carry the trip name and dates (a data-model change), so the join page can show them before joining?

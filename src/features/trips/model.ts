@@ -1,0 +1,178 @@
+// Trip-planning types and pure helpers (no Firebase). Field names follow docs/data-model.md.
+
+import type { Family } from '../../domain';
+
+export type Role = 'owner' | 'organizer' | 'member';
+export type LegMode = 'car' | 'bus' | 'train' | 'flight' | 'other';
+
+export interface Trip {
+  id: string;
+  name: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  timezone: string;
+  expectedKm: number | null;
+  kidWeight: number;
+  currency: 'INR';
+  ownerUid: string;
+  memberUids: string[];
+  organizerUids: string[];
+  notes: string;
+}
+
+export interface Leg {
+  id: string;
+  mode: LegMode;
+  from: string;
+  to: string;
+  date: string | null;
+  vehicles: number;
+  km: number | null;
+  notes: string;
+  order: number;
+}
+
+export interface TripFamily extends Family {
+  name: string;
+  upiId: string | null;
+  color: FamilyColor;
+}
+
+export interface Member {
+  uid: string;
+  displayName: string;
+  photoURL: string | null;
+  familyId: string | null;
+  role: Role;
+}
+
+export interface Invite {
+  code: string;
+  tripId: string;
+  active: boolean;
+}
+
+export const LEG_MODES: { value: LegMode; label: string; vehicleLabel: string }[] = [
+  { value: 'car', label: 'Car', vehicleLabel: 'Cars' },
+  { value: 'bus', label: 'Bus', vehicleLabel: 'Buses' },
+  { value: 'train', label: 'Train', vehicleLabel: 'Bookings' },
+  { value: 'flight', label: 'Flight', vehicleLabel: 'Bookings' },
+  { value: 'other', label: 'Other', vehicleLabel: 'Vehicles' },
+];
+
+export const FAMILY_COLORS = [
+  'teal',
+  'amber',
+  'rose',
+  'indigo',
+  'lime',
+  'sky',
+  'fuchsia',
+  'orange',
+] as const;
+export type FamilyColor = (typeof FAMILY_COLORS)[number];
+
+/** Tailwind classes per colour (spelled out so Tailwind keeps them). */
+export const FAMILY_COLOR_CLASSES: Record<FamilyColor, { dot: string; chip: string }> = {
+  teal: { dot: 'bg-teal-500', chip: 'bg-teal-50 text-teal-800 ring-teal-200' },
+  amber: { dot: 'bg-amber-500', chip: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  rose: { dot: 'bg-rose-500', chip: 'bg-rose-50 text-rose-800 ring-rose-200' },
+  indigo: { dot: 'bg-indigo-500', chip: 'bg-indigo-50 text-indigo-800 ring-indigo-200' },
+  lime: { dot: 'bg-lime-500', chip: 'bg-lime-50 text-lime-800 ring-lime-200' },
+  sky: { dot: 'bg-sky-500', chip: 'bg-sky-50 text-sky-800 ring-sky-200' },
+  fuchsia: { dot: 'bg-fuchsia-500', chip: 'bg-fuchsia-50 text-fuchsia-800 ring-fuchsia-200' },
+  orange: { dot: 'bg-orange-500', chip: 'bg-orange-50 text-orange-800 ring-orange-200' },
+};
+
+export function asFamilyColor(value: unknown): FamilyColor {
+  return (FAMILY_COLORS as readonly unknown[]).includes(value) ? (value as FamilyColor) : 'teal';
+}
+
+/** The first colour not already used by an active family. */
+export function nextFamilyColor(families: Pick<TripFamily, 'color' | 'active'>[]): FamilyColor {
+  const used = new Set(families.filter((f) => f.active).map((f) => f.color));
+  return FAMILY_COLORS.find((c) => !used.has(c)) ?? FAMILY_COLORS[families.length % 8]!;
+}
+
+export function isOrganizer(trip: Pick<Trip, 'organizerUids'> | null, uid: string | undefined) {
+  return !!trip && !!uid && trip.organizerUids.includes(uid);
+}
+
+export interface TravelSummary {
+  /** Cars on the road: the most cars any single car leg uses (the same cars drive every leg). */
+  cars: number;
+  /** Total km: the legs' km when any leg has it, otherwise the trip's estimate. */
+  totalKm: number | null;
+  modes: LegMode[];
+}
+
+export function travelSummary(legs: Leg[], expectedKm: number | null): TravelSummary {
+  const carLegs = legs.filter((l) => l.mode === 'car');
+  const legKm = legs.filter((l) => l.km != null);
+  return {
+    cars: carLegs.reduce((max, l) => Math.max(max, l.vehicles), 0),
+    totalKm: legKm.length > 0 ? legKm.reduce((sum, l) => sum + (l.km ?? 0), 0) : expectedKm,
+    modes: [...new Set(legs.map((l) => l.mode))],
+  };
+}
+
+export interface Headcount {
+  families: number;
+  adults: number;
+  kids: number;
+}
+
+export function headcount(families: Pick<TripFamily, 'adults' | 'kids' | 'active'>[]): Headcount {
+  const active = families.filter((f) => f.active);
+  return {
+    families: active.length,
+    adults: active.reduce((s, f) => s + f.adults, 0),
+    kids: active.reduce((s, f) => s + f.kids, 0),
+  };
+}
+
+export function sortLegs(legs: Leg[]): Leg[] {
+  return [...legs].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+}
+
+/** Unguessable, URL-safe invite code: 16 random bytes → 22 base64url characters (128 bits). */
+export function newInviteCode(
+  random: (bytes: Uint8Array<ArrayBuffer>) => Uint8Array = defaultRandom,
+): string {
+  const bytes = random(new Uint8Array(16));
+  let binary = '';
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function defaultRandom(bytes: Uint8Array<ArrayBuffer>): Uint8Array {
+  return crypto.getRandomValues(bytes);
+}
+
+/** Accept a pasted invite link or a bare code. Returns the code, or null. */
+export function parseInviteInput(input: string): string | null {
+  const trimmed = input.trim();
+  const fromLink = /\/join\/([A-Za-z0-9_-]{22,})/.exec(trimmed);
+  if (fromLink) return fromLink[1]!;
+  return /^[A-Za-z0-9_-]{22,}$/.test(trimmed) ? trimmed : null;
+}
+
+export function inviteLink(origin: string, code: string): string {
+  return `${origin}/join/${code}`;
+}
+
+export function familySize(f: Pick<TripFamily, 'adults' | 'kids'>): string {
+  const adults = `${f.adults} adult${f.adults === 1 ? '' : 's'}`;
+  return f.kids > 0 ? `${adults}, ${f.kids} kid${f.kids === 1 ? '' : 's'}` : adults;
+}
+
+export function pickActiveTrip(
+  trips: Trip[],
+  activeTripId: string | null | undefined,
+): Trip | null {
+  const sorted = [...trips].sort(
+    (a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id),
+  );
+  return sorted.find((t) => t.id === activeTripId) ?? sorted[0] ?? null;
+}

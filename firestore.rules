@@ -1,24 +1,255 @@
 rules_version = '2';
 
-// Security rules for trip-budget-tracker. See docs/data-model.md for the access table.
-// Skeleton stage: only each user's own profile document is reachable. Trip rules arrive with
-// the trip-planning handoff.
+// Security rules for trip-budget-tracker. The access table lives in docs/data-model.md.
+// Trip-scoped permissions come from the trip document's `memberUids` and `organizerUids`.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------- helpers ----------
 
     function signedIn() {
       return request.auth != null;
     }
 
+    function me() {
+      return request.auth.uid;
+    }
+
+    function tripPath(tripId) {
+      return /databases/$(database)/documents/trips/$(tripId);
+    }
+
+    function tripBefore(tripId) {
+      return get(tripPath(tripId)).data;
+    }
+
+    function tripAfter(tripId) {
+      return getAfter(tripPath(tripId)).data;
+    }
+
+    function isMember(tripId) {
+      return signedIn() && exists(tripPath(tripId)) && me() in tripBefore(tripId).memberUids;
+    }
+
+    function isOrganizer(tripId) {
+      return signedIn() && exists(tripPath(tripId)) && me() in tripBefore(tripId).organizerUids;
+    }
+
+    // Member after this batch (covers a family created in the same batch as joining).
+    function isMemberAfter(tripId) {
+      return signedIn() && me() in tripAfter(tripId).memberUids;
+    }
+
+    function isDate(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function isOptionalDate(v) {
+      return v == null || isDate(v);
+    }
+
+    function isText(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function isRequiredText(v, max) {
+      return isText(v, max) && v.size() > 0;
+    }
+
+    function isOptionalInt(v, max) {
+      return v == null || (v is int && v >= 0 && v <= max);
+    }
+
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    function validInvite(code, tripId) {
+      let path = /databases/$(database)/documents/invites/$(code);
+      return code is string && exists(path)
+        && get(path).data.tripId == tripId && get(path).data.active == true;
+    }
+
+    // ---------- users ----------
+
     match /users/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
-      allow create, update: if signedIn() && request.auth.uid == uid
+      allow read: if signedIn() && me() == uid;
+      allow create, update: if signedIn() && me() == uid
         && request.resource.data.keys().hasOnly(
              ['displayName', 'photoURL', 'activeTripId', 'createdAt', 'updatedAt']);
       allow delete: if false;
     }
 
-    // Everything else is closed until a handoff opens it deliberately.
+    // ---------- invites (document ID is the code) ----------
+
+    match /invites/{code} {
+      // Knowing the code is what grants access; nobody can browse other trips' invites.
+      allow get: if signedIn();
+      allow list: if isOrganizer(resource.data.tripId);
+      allow create: if isOrganizer(request.resource.data.tripId)
+        && code.size() >= 22
+        && request.resource.data.keys().hasOnly(['tripId', 'active', 'createdBy', 'createdAt'])
+        && request.resource.data.active == true
+        && request.resource.data.createdBy == me();
+      allow update: if isOrganizer(resource.data.tripId)
+        && changedOnly(['active'])
+        && request.resource.data.active is bool;
+      allow delete: if false;
+    }
+
+    // ---------- trips ----------
+
+    match /trips/{tripId} {
+
+      function validTrip(d) {
+        return d.keys().hasOnly([
+            'name', 'destination', 'startDate', 'endDate', 'timezone', 'expectedKm', 'kidWeight',
+            'currency', 'ownerUid', 'memberUids', 'organizerUids', 'notes', 'createdAt',
+            'updatedAt'])
+          && d.keys().hasAll(['name', 'startDate', 'endDate', 'ownerUid', 'memberUids',
+            'organizerUids'])
+          && isRequiredText(d.name, 100)
+          && isText(d.get('destination', ''), 200)
+          && isDate(d.startDate) && isDate(d.endDate) && d.endDate >= d.startDate
+          && d.get('timezone', 'Asia/Kolkata') is string
+          && isOptionalInt(d.get('expectedKm', null), 100000)
+          && d.get('kidWeight', 0.5) is number
+          && d.get('kidWeight', 0.5) >= 0 && d.get('kidWeight', 0.5) <= 1
+          && d.get('currency', 'INR') == 'INR'
+          && isText(d.get('notes', ''), 2000)
+          && d.memberUids is list && d.organizerUids is list
+          && d.ownerUid in d.organizerUids
+          && d.memberUids.toSet().hasAll(d.organizerUids);
+      }
+
+      allow read: if signedIn() && me() in resource.data.memberUids;
+
+      // The creator is the owner, the only member and the only organiser.
+      allow create: if signedIn()
+        && validTrip(request.resource.data)
+        && request.resource.data.ownerUid == me()
+        && request.resource.data.memberUids == [me()]
+        && request.resource.data.organizerUids == [me()];
+
+      // Organisers edit details and roles, but never membership or ownership.
+      // Joining: someone with a valid invite adds only themselves to memberUids, in the same
+      // batch that creates their members/{uid} document (which names the invite).
+      allow update: if validTrip(request.resource.data) && (
+          (isOrganizer(tripId)
+            && request.resource.data.ownerUid == resource.data.ownerUid
+            && request.resource.data.memberUids == resource.data.memberUids)
+          ||
+          (signedIn()
+            && !(me() in resource.data.memberUids)
+            && changedOnly(['memberUids'])
+            && request.resource.data.memberUids.toSet()
+                 == resource.data.memberUids.toSet().union([me()].toSet())
+            && request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+            && validInvite(
+                 getAfter(/databases/$(database)/documents/trips/$(tripId)/members/$(me()))
+                   .data.joinedVia,
+                 tripId))
+        );
+
+      allow delete: if false;
+
+      // ---------- legs: how the group travels ----------
+
+      match /legs/{legId} {
+        function validLeg(d) {
+          return d.keys().hasOnly(['mode', 'from', 'to', 'date', 'vehicles', 'km', 'notes',
+              'order', 'createdAt', 'updatedAt'])
+            && d.mode in ['car', 'bus', 'train', 'flight', 'other']
+            && isText(d.get('from', ''), 100) && isText(d.get('to', ''), 100)
+            && isOptionalDate(d.get('date', null))
+            && d.vehicles is int && d.vehicles >= 1 && d.vehicles <= 50
+            && isOptionalInt(d.get('km', null), 20000)
+            && isText(d.get('notes', ''), 500)
+            && d.order is int;
+        }
+
+        allow read: if isMember(tripId);
+        allow create, update: if isOrganizer(tripId) && validLeg(request.resource.data);
+        allow delete: if isOrganizer(tripId);
+      }
+
+      // ---------- families ----------
+
+      match /families/{familyId} {
+        function validFamily(d) {
+          return d.keys().hasOnly(['name', 'adults', 'kids', 'upiId', 'color', 'order', 'active',
+              'createdBy', 'createdAt', 'updatedAt'])
+            && isRequiredText(d.name, 60)
+            && d.adults is int && d.adults >= 1 && d.adults <= 20
+            && d.kids is int && d.kids >= 0 && d.kids <= 20
+            && (d.get('upiId', null) == null || isText(d.upiId, 100))
+            && isText(d.get('color', ''), 20)
+            && d.order is int
+            && d.active is bool;
+        }
+
+        allow read: if isMember(tripId);
+        // Organisers add families; a person joining may add their own family in the join batch.
+        allow create: if (isOrganizer(tripId) || isMemberAfter(tripId))
+          && validFamily(request.resource.data);
+        allow update: if isOrganizer(tripId) && validFamily(request.resource.data);
+        allow delete: if false;
+      }
+
+      // ---------- members (document ID is the user's uid) ----------
+
+      match /members/{memberUid} {
+        function validMember(d) {
+          return d.keys().hasOnly(['displayName', 'photoURL', 'familyId', 'role', 'joinedVia',
+              'joinedAt'])
+            && isText(d.get('displayName', ''), 100)
+            && d.role in ['owner', 'organizer', 'member'];
+        }
+
+        function familyOk(familyId) {
+          return familyId == null || existsAfter(
+            /databases/$(database)/documents/trips/$(tripId)/families/$(familyId));
+        }
+
+        allow read: if isMember(tripId);
+
+        allow create: if signedIn() && me() == memberUid
+          && validMember(request.resource.data)
+          && familyOk(request.resource.data.get('familyId', null))
+          && (
+            // The owner, in the batch that creates the trip.
+            (request.resource.data.role == 'owner'
+              && !exists(tripPath(tripId))
+              && tripAfter(tripId).ownerUid == me())
+            ||
+            // Anyone joining with a valid invite, in the batch that adds them to memberUids.
+            (request.resource.data.role == 'member'
+              && validInvite(request.resource.data.joinedVia, tripId)
+              && me() in tripAfter(tripId).memberUids)
+          );
+
+        allow update: if validMember(request.resource.data) && (
+            // Members manage their own profile and family, never their role.
+            (signedIn() && me() == memberUid
+              && isMember(tripId)
+              && changedOnly(['familyId', 'displayName', 'photoURL'])
+              && familyOk(request.resource.data.get('familyId', null)))
+            ||
+            // Organisers change other people's roles, keeping the trip's organizerUids in step.
+            (isOrganizer(tripId)
+              && me() != memberUid
+              && changedOnly(['role'])
+              && resource.data.role != 'owner'
+              && request.resource.data.role in ['organizer', 'member']
+              && ((request.resource.data.role == 'organizer')
+                    == (memberUid in tripAfter(tripId).organizerUids)))
+          );
+
+        allow delete: if false;
+      }
+    }
+
+    // Everything else is closed.
     match /{document=**} {
       allow read, write: if false;
     }
