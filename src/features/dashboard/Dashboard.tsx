@@ -12,6 +12,8 @@ import { firstName } from '../../lib/names';
 import { formatDateRange } from '../../lib/dates';
 import { currentPlatform } from '../../lib/platform';
 import { Card } from '../../components/ui';
+import { useExpenses } from '../expenses/expenses.data';
+import { formatINR, splitExpense } from '../../domain';
 
 /** Re-evaluates the trip phase every minute, so the screen flips at midnight on its own. */
 function useMinuteClock(): number {
@@ -130,10 +132,7 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
       {phase.phase === 'during' && (
         <div className="grid gap-4 lg:grid-cols-3">
           <TodayLegs legs={legs.filter((l) => l.date === phase.today)} />
-          <Card>
-            <h3 className="text-sm font-medium text-slate-500">Today's spend</h3>
-            <p className="mt-2 text-slate-600">Appears here once expenses are being logged.</p>
-          </Card>
+          <TodaySpend trip={trip} today={phase.today ?? ''} myFamilyId={me?.familyId ?? null} />
           <Card>
             <h3 className="text-sm font-medium text-slate-500">Your family's balance</h3>
             <p className="mt-2 text-slate-600">Who owes whom, worked out as you go.</p>
@@ -264,6 +263,54 @@ function TodayLegs({ legs }: { legs: Leg[] }) {
           ))}
         </ul>
       )}
+    </Card>
+  );
+}
+
+function TodaySpend({
+  trip,
+  today,
+  myFamilyId,
+}: {
+  trip: Trip;
+  today: string;
+  myFamilyId: string | null;
+}) {
+  const expenses = useExpenses(trip.id).data.filter((e) => !e.deleted && e.date === today);
+  const families = useFamilies(trip.id).data;
+  const total = expenses.reduce((s, e) => s + e.amountPaise, 0);
+  let mine = 0;
+  if (myFamilyId) {
+    for (const e of expenses) {
+      try {
+        mine += splitExpense(e, families, trip.kidWeight)[myFamilyId] ?? 0;
+      } catch {
+        // A malformed expense shouldn't break the dashboard.
+      }
+    }
+  }
+  return (
+    <Card>
+      <h3 className="text-sm font-medium text-slate-500">Today's spend</h3>
+      <p
+        className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums"
+        data-testid="today-spend"
+      >
+        {formatINR(total)}
+      </p>
+      <p className="text-sm text-slate-600">
+        {expenses.length === 0 ? (
+          'Nothing logged yet today.'
+        ) : (
+          <>
+            {expenses.length} expense{expenses.length === 1 ? '' : 's'}
+            {myFamilyId && ` · your family's share ${formatINR(mine)}`}
+          </>
+        )}
+      </p>
+      <Link to="/expenses" className="mt-2 inline-block text-sm font-medium text-teal-700">
+        Add an expense
+      </Link>
     </Card>
   );
 }

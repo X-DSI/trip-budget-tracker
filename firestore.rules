@@ -219,6 +219,43 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // ---------- expenses (docs/adr/2026-11-24-who-can-change-money.md) ----------
+
+      match /expenses/{expenseId} {
+        function validExpense(d) {
+          return d.keys().hasOnly(['title', 'category', 'amountPaise', 'paidByFamilyId', 'date',
+              'splitMode', 'participants', 'items', 'extrasPaise', 'customShares', 'note',
+              'deleted', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'])
+            && isRequiredText(d.title, 100)
+            && d.category in ['fuel', 'tolls', 'food', 'stay', 'tickets', 'shopping',
+                 'transport', 'other']
+            && d.amountPaise is int && d.amountPaise > 0 && d.amountPaise <= 1000000000
+            && d.paidByFamilyId is string
+            && exists(/databases/$(database)/documents/trips/$(tripId)/families/$(d.paidByFamilyId))
+            && isDate(d.date)
+            && d.splitMode in ['equal_family', 'per_head', 'itemized', 'custom', 'personal']
+            && d.get('participants', []) is list && d.get('participants', []).size() <= 50
+            && d.get('items', []) is list && d.get('items', []).size() <= 100
+            && d.get('extrasPaise', 0) is int && d.get('extrasPaise', 0) >= 0
+            && d.get('customShares', {}) is map
+            && isText(d.get('note', ''), 500)
+            && d.deleted is bool
+            && d.updatedBy == me();
+        }
+
+        allow read: if isMember(tripId);
+        allow create: if isMember(tripId)
+          && validExpense(request.resource.data)
+          && request.resource.data.createdBy == me()
+          && request.resource.data.deleted == false;
+        // The person who added it, or an organiser, may edit or (soft) delete it.
+        allow update: if isMember(tripId)
+          && (resource.data.createdBy == me() || isOrganizer(tripId))
+          && validExpense(request.resource.data)
+          && request.resource.data.createdBy == resource.data.createdBy;
+        allow delete: if false;
+      }
+
       // ---------- members (document ID is the user's uid) ----------
 
       match /members/{memberUid} {
