@@ -28,6 +28,7 @@ test('Home: quick add, important info with tappable phones, budget and recent ex
     'tel:+919876543210',
   );
   await expect(info.getByRole('link')).toHaveCount(1); // the amount and date stay plain text
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
 
   // A budget line, so "budget at a glance" appears.
   await page.goto('/money/budget');
@@ -37,6 +38,9 @@ test('Home: quick add, important info with tappable phones, budget and recent ex
   await budgetSheet.getByText('Equal per family', { exact: true }).click();
   await budgetSheet.getByRole('button', { name: 'Add to budget' }).click();
   await expect(budgetSheet).toBeHidden();
+  // Full page loads below: let each write reach the server first (a write made a split second
+  // before a reload can be lost; see docs/dry-run.md).
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
 
   // Quick add opens the add-expense sheet directly.
   await page.goto('/');
@@ -49,6 +53,7 @@ test('Home: quick add, important info with tappable phones, budget and recent ex
   await sheet.getByText('Equal per family', { exact: true }).click();
   await sheet.getByRole('button', { name: 'Add expense' }).click();
   await expect(sheet).toBeHidden();
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
 
   await page.getByRole('link', { name: 'Home' }).first().click();
   await expect(page.getByTestId('recent-expenses')).toContainText('Fuel at Hosur');
