@@ -1,11 +1,11 @@
 ---
 title: Day-by-day itinerary (replaces travel legs)
-status: in-progress
+status: done
 assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-24-itinerary-replaces-legs.md, 2026-11-23-multi-trip-data-model.md]
 plan_pr: 12
-impl_pr: null
+impl_pr: 14
 review: human
 ---
 
@@ -60,3 +60,25 @@ Changes to the itinerary fields beyond the data model.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** 0e93b58..d1c162b · **PR:** #14 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45416745763
+
+### Verified acceptance criteria
+- [x] Rules: organisers write itinerary items and members can't; days outside the trip, bad times, kinds and modes, and travel fields on non-travel items are rejected — `firestore rules (emulator)` job, `tests/rules/trips.test.ts`
+- [x] Unit: Coming up before, during and after the trip; sorting by time then order; travel totals — unit job, `src/features/itinerary/model.test.ts`
+- [x] E2E: an organiser plans items on two days; Coming up and the Itinerary page show them, with a Maps link; a member reads but can't edit — `e2e` job, `@itinerary`
+- [x] E2E @offline: an item edited or added offline shows at once and syncs later — `e2e` job
+- [x] No horizontal scroll on the itinerary page at 390×844 and 1440×900 — `e2e` job, `@layout`
+
+### Deviations
+- **Move up/down** is only enabled between items at the same time (or both untimed). Items sort by time, so reordering across different times would do nothing.
+- Items that fall outside the trip's dates (if the dates are changed later) still show, at the end of the page, so nothing silently disappears.
+- `/itinerary` isn't a tab; it's reached from the Trip page ("See full itinerary") and from Home ("Full itinerary").
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
