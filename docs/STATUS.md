@@ -23,12 +23,17 @@
 | 3 | [Dashboard — countdown, welcome, summary](handoff/2026-11-23-dashboard.md) | trip planning | X-DSI-agent · **done** (#7) | auto | Fri 27 Nov |
 | 4 | [Expenses — add, edit and split, offline](handoff/2026-11-24-expenses.md) | trip planning | X-DSI-agent · **done** (#9) | human | Thu 26 Nov |
 | 5 | [Budget vs actual, balances and UPI settle-up](handoff/2026-11-24-budget-and-balances.md) | expenses | Claude Code (local) · **done** (#10) | human | Sat 28 Nov |
+| 6 | [Money tab and "Your family" card](handoff/2026-11-24-money-tab-and-family-card.md) | — | agent:any | auto | Wed 25 Nov |
+| 7 | [Day-by-day itinerary](handoff/2026-11-24-itinerary.md) | — | agent:any | human | Thu 26 Nov |
+| 8 | [Dashboard additions](handoff/2026-11-24-dashboard-additions.md) | 6, 7 | agent:any | human | Fri 27 Nov |
+| 9 | [Dark theme](handoff/2026-11-24-dark-theme.md) | 6, 7, 8 | agent:any | auto | Sat 28 Nov |
 
 ## Next
 
-All v1 handoffs are done; the app is live. Remaining before the trip:
+The first five handoffs are done and live. Remaining before the trip:
 
-- [ ] Run the [dry run](dry-run.md) on the dev project with the families (plan: by Mon 30 Nov).
+- [ ] Finish handoffs 6–9 before the freeze.
+- [ ] Run the [dry run](dry-run.md) on the dev project with the families (Mon 30 Nov).
 - [ ] Manual checks on real phones: WhatsApp share, UPI app opens prefilled, add an expense in
       under 10 s, Google sign-in on the live site, install on iPhone and Android.
 - [ ] Feature freeze end of Sun 29 Nov; after that only `fix/` PRs.
@@ -37,4 +42,4 @@ All v1 handoffs are done; the app is live. Remaining before the trip:
 
 ## Later (after the trip)
 
-Common chat, receipt photos (needs Blaze or Cloudflare R2), bill OCR.
+Group chat (text, images, video, polls): decided not worth the time or the paid storage it needs; WhatsApp covers it. Receipt photos and bill OCR (paid storage too).
