@@ -8,6 +8,9 @@ import { FamiliesSection } from './FamiliesSection';
 import { InviteSection, PeopleSection } from './PeopleSection';
 import { NoTripCard } from './NoTripCard';
 import { formatDateRange, tripLength } from '../../lib/dates';
+import { BudgetSection } from '../budget/BudgetSection';
+import { useBudget } from '../budget/budget.data';
+import { useExpenses } from '../expenses/expenses.data';
 
 export function TripPage() {
   const { user } = useAuth();
@@ -23,6 +26,8 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
   const families = useFamilies(trip.id);
   const members = useMembers(trip.id);
   const invites = useInvites(trip.id, canEdit);
+  const budget = useBudget(trip.id);
+  const expenses = useExpenses(trip.id);
   const me = members.data.find((m) => m.uid === uid);
   const needsFamily = !members.loading && me && !me.familyId;
 
@@ -60,6 +65,16 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
           <InviteSection trip={trip} invites={invites.data} members={members.data} uid={uid} />
         )}
       </div>
+
+      <BudgetSection
+        trip={trip}
+        lines={budget.data}
+        expenses={expenses.data}
+        families={families.data}
+        myFamilyId={me?.familyId ?? null}
+        canEdit={canEdit}
+        uid={uid}
+      />
     </div>
   );
 }

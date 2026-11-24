@@ -5,13 +5,13 @@ import { SignInPage } from './features/auth/SignInPage';
 import { AppShell } from './components/layout/AppShell';
 import { ReloadPrompt } from './components/ReloadPrompt';
 import { HomePage } from './pages/HomePage';
-import { ComingSoonPage } from './pages/ComingSoonPage';
 import { MorePage } from './pages/MorePage';
 import { ActiveTripProvider } from './features/trips/ActiveTripProvider';
 import { TripPage } from './features/trips/TripPage';
 import { EditTripPage, NewTripPage } from './features/trips/TripFormPage';
 import { JoinPage } from './features/trips/JoinPage';
 import { ExpensesPage } from './features/expenses/ExpensesPage';
+import { BalancesPage } from './features/balances/BalancesPage';
 import { ErrorToasts } from './components/ErrorToasts';
 
 const router = createBrowserRouter([
@@ -32,15 +32,7 @@ const router = createBrowserRouter([
       { path: 'trips/new', element: <NewTripPage /> },
       { path: 'join/:code', element: <JoinPage /> },
       { path: 'expenses', element: <ExpensesPage /> },
-      {
-        path: 'balances',
-        element: (
-          <ComingSoonPage
-            title="Balances"
-            body="See who owes whom between families, and settle up over UPI."
-          />
-        ),
-      },
+      { path: 'balances', element: <BalancesPage /> },
       { path: 'more', element: <MorePage /> },
       {
         path: '*',

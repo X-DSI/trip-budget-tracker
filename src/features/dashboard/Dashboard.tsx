@@ -14,6 +14,9 @@ import { currentPlatform } from '../../lib/platform';
 import { Card } from '../../components/ui';
 import { useExpenses } from '../expenses/expenses.data';
 import { formatINR, splitExpense } from '../../domain';
+import { useBudget } from '../budget/budget.data';
+import { useSettlements } from '../balances/settlements.data';
+import { tripBalances, yourNetLabel } from '../balances/model';
 
 /** Re-evaluates the trip phase every minute, so the screen flips at midnight on its own. */
 function useMinuteClock(): number {
@@ -60,6 +63,7 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
   const people = headcount(families);
   const travel = travelSummary(legs, trip.expectedKm);
   const me = members.find((m) => m.uid === user?.uid);
+  const budget = useBudget(trip.id).data;
 
   return (
     <section className="space-y-6" data-testid="dashboard" data-phase={phase.phase}>
@@ -126,6 +130,8 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
           joined={members.length}
           hasFamily={!!me?.familyId}
           installed={currentPlatform().standalone}
+          budgetLines={budget.length}
+          budgetTotal={budget.reduce((s, l) => s + l.amountPaise, 0)}
         />
       )}
 
@@ -133,10 +139,13 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
         <div className="grid gap-4 lg:grid-cols-3">
           <TodayLegs legs={legs.filter((l) => l.date === phase.today)} />
           <TodaySpend trip={trip} today={phase.today ?? ''} myFamilyId={me?.familyId ?? null} />
-          <Card>
-            <h3 className="text-sm font-medium text-slate-500">Your family's balance</h3>
-            <p className="mt-2 text-slate-600">Who owes whom, worked out as you go.</p>
-          </Card>
+          <FamilyBalance trip={trip} myFamilyId={me?.familyId ?? null} />
+        </div>
+      )}
+
+      {phase.phase === 'after' && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <FamilyBalance trip={trip} myFamilyId={me?.familyId ?? null} />
         </div>
       )}
     </section>
@@ -175,11 +184,15 @@ function Checklist({
   joined,
   hasFamily,
   installed,
+  budgetLines,
+  budgetTotal,
 }: {
   adults: number;
   joined: number;
   hasFamily: boolean;
   installed: boolean;
+  budgetLines: number;
+  budgetTotal: number;
 }) {
   const items: { done: boolean; label: string; detail: ReactNode; disabled?: boolean }[] = [
     {
@@ -204,7 +217,19 @@ function Checklist({
       label: 'App installed on this phone',
       detail: installed ? 'Works with no signal' : 'Add to Home Screen so it opens offline',
     },
-    { done: false, label: 'Budget set', detail: 'Coming soon', disabled: true },
+    {
+      done: budgetLines > 0,
+      label: 'Budget set',
+      detail:
+        budgetLines > 0 ? (
+          <>
+            {formatINR(budgetTotal)} over {budgetLines} line{budgetLines === 1 ? '' : 's'} ·{' '}
+            <Link to="/trip">see each family's share</Link>
+          </>
+        ) : (
+          <Link to="/trip">Organisers add it on the Trip tab</Link>
+        ),
+    },
   ];
 
   return (
@@ -310,6 +335,40 @@ function TodaySpend({
       </p>
       <Link to="/expenses" className="mt-2 inline-block text-sm font-medium text-teal-700">
         Add an expense
+      </Link>
+    </Card>
+  );
+}
+
+function FamilyBalance({ trip, myFamilyId }: { trip: Trip; myFamilyId: string | null }) {
+  const expenses = useExpenses(trip.id).data;
+  const settlements = useSettlements(trip.id).data;
+  const families = useFamilies(trip.id).data;
+  const net = myFamilyId
+    ? tripBalances(expenses, settlements, families, trip.kidWeight).balances[myFamilyId]?.net
+    : undefined;
+  return (
+    <Card>
+      <h3 className="text-sm font-medium text-slate-500">Your family's balance</h3>
+      {net === undefined ? (
+        <p className="mt-2 text-slate-600">
+          <Link to="/trip" className="font-medium text-teal-700">
+            Pick your family
+          </Link>{' '}
+          to see what you owe or get back.
+        </p>
+      ) : (
+        <p
+          className={`mt-1 text-2xl font-semibold ${
+            net < 0 ? 'text-rose-700' : net > 0 ? 'text-teal-700' : 'text-slate-900'
+          }`}
+          data-testid="dashboard-balance"
+        >
+          {yourNetLabel(net)}
+        </p>
+      )}
+      <Link to="/balances" className="mt-2 inline-block text-sm font-medium text-teal-700">
+        See who owes whom
       </Link>
     </Card>
   );

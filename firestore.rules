@@ -256,6 +256,82 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // ---------- budget: the plan (docs/adr/2026-11-24-who-can-change-money.md) ----------
+
+      match /budget/{lineId} {
+        function validBudgetLine(d) {
+          return d.keys().hasOnly(['category', 'title', 'amountPaise', 'splitMode',
+              'participants', 'customShares', 'familyId', 'order', 'createdBy', 'updatedBy',
+              'createdAt', 'updatedAt'])
+            && d.category in ['fuel', 'tolls', 'food', 'stay', 'tickets', 'shopping',
+                 'transport', 'other']
+            && isRequiredText(d.title, 100)
+            && d.amountPaise is int && d.amountPaise > 0 && d.amountPaise <= 1000000000
+            && d.splitMode in ['equal_family', 'per_head', 'custom', 'personal']
+            && d.get('participants', []) is list && d.get('participants', []).size() <= 50
+            && d.get('customShares', {}) is map
+            && (d.splitMode != 'personal' || (d.get('familyId', null) is string
+                 && exists(/databases/$(database)/documents/trips/$(tripId)/families/$(d.familyId))))
+            && (d.get('familyId', null) == null || d.familyId is string)
+            && d.order is int
+            && d.updatedBy == me();
+        }
+
+        allow read: if isMember(tripId);
+        allow create: if isOrganizer(tripId)
+          && validBudgetLine(request.resource.data)
+          && request.resource.data.createdBy == me();
+        allow update: if isOrganizer(tripId)
+          && validBudgetLine(request.resource.data)
+          && request.resource.data.createdBy == resource.data.createdBy;
+        // A plan needs no history, so lines are deleted outright.
+        allow delete: if isOrganizer(tripId);
+      }
+
+      // ---------- settlements: payments between families ----------
+
+      match /settlements/{settlementId} {
+        function familyExists(familyId) {
+          return familyId is string
+            && exists(/databases/$(database)/documents/trips/$(tripId)/families/$(familyId));
+        }
+
+        // The family the signed-in adult picked on this trip, or null.
+        function myFamily() {
+          let path = /databases/$(database)/documents/trips/$(tripId)/members/$(me());
+          return exists(path) ? get(path).data.get('familyId', null) : null;
+        }
+
+        function validSettlement(d) {
+          return d.keys().hasOnly(['fromFamilyId', 'toFamilyId', 'amountPaise', 'date', 'method',
+              'note', 'deleted', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'])
+            && familyExists(d.fromFamilyId) && familyExists(d.toFamilyId)
+            && d.fromFamilyId != d.toFamilyId
+            && d.amountPaise is int && d.amountPaise > 0 && d.amountPaise <= 1000000000
+            && isDate(d.date)
+            && d.method in ['upi', 'cash', 'other']
+            && isText(d.get('note', ''), 200)
+            && d.deleted is bool
+            && d.updatedBy == me();
+        }
+
+        allow read: if isMember(tripId);
+        // Only an adult of the paying or receiving family records a payment, as themselves.
+        allow create: if isMember(tripId)
+          && validSettlement(request.resource.data)
+          && myFamily() != null
+          && myFamily() in [request.resource.data.fromFamilyId, request.resource.data.toFamilyId]
+          && request.resource.data.createdBy == me()
+          && request.resource.data.deleted == false;
+        // A recorded payment is never edited, only (soft) deleted or restored, by the person who
+        // recorded it or an organiser. To fix an amount, delete it and record it again.
+        allow update: if isMember(tripId)
+          && (resource.data.createdBy == me() || isOrganizer(tripId))
+          && changedOnly(['deleted', 'updatedBy', 'updatedAt'])
+          && validSettlement(request.resource.data);
+        allow delete: if false;
+      }
+
       // ---------- members (document ID is the user's uid) ----------
 
       match /members/{memberUid} {
