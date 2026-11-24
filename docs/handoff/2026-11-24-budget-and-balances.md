@@ -5,7 +5,7 @@ assignee: X-DSI-agent
 base_sha: b15053f
 adrs: [2026-11-23-split-modes.md, 2026-11-23-expenses-are-the-source-of-truth.md, 2026-11-24-who-can-change-money.md]
 plan_pr: 8
-impl_pr: null
+impl_pr: 10
 review: human
 ---
 
@@ -59,11 +59,11 @@ Any change to how settlements affect balances; storing anything derived from exp
 None.
 
 ## Outcome
-**Status:** done (one manual check left for the maintainer; CI evidence once the PR runs)  
-**Commits:** 63fde83..HEAD of `impl/budget-and-balances` · **PR:** not opened yet · **CI run:** pending
+**Status:** done (one manual check left for the maintainer)  
+**Commits:** 63fde83..3958f82 · **PR:** #10 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45390445138
 
 ### Verified acceptance criteria
-Passed locally; the CI run will be linked here once the PR is open.
+Passed in the CI run above (`firestore rules (emulator)`, `e2e (phone + desktop, emulators)` and unit-test jobs).
 - [x] Rules: only organisers write budget lines; settlements only by an adult of the paying or receiving family (a member with no family, another family, or an organiser of another family is refused); only the recorder or an organiser deletes, and only softly — `npm run test:rules`, `tests/rules/money.test.ts`
 - [x] E2E: two families pay; nets sum to zero; 2 suggested payments for 3 families; after "Mark as paid" on each (the first one offline) everyone is settled; deleting a payment brings the debt back — `npm run test:e2e -- --grep @balances`, phone and desktop
 - [x] E2E: ₹12,000 equal + ₹36,000 per head over 2/4/3/3 adults shows ₹9,000 / ₹15,000 / ₹12,000 / ₹12,000 — `npm run test:e2e -- --grep @budget`, phone and desktop
