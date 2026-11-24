@@ -1,7 +1,7 @@
 ---
 title: Dashboard additions — quick add, budget at a glance, recent expenses, important info
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-24-itinerary-replaces-legs.md, 2026-11-24-who-can-change-money.md]
 plan_pr: 12
