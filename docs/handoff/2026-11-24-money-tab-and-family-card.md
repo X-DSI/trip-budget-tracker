@@ -1,10 +1,10 @@
 ---
 title: Money tab (Budget | Balances) and a "Your family" card for members
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-24-who-can-change-money.md]
-plan_pr: null
+plan_pr: 12
 impl_pr: null
 review: auto
 ---
