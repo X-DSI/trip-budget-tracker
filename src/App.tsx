@@ -1,4 +1,4 @@
-import { createBrowserRouter, Link, RouterProvider } from 'react-router';
+import { createBrowserRouter, Link, Navigate, RouterProvider } from 'react-router';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { RequireAuth } from './features/auth/RequireAuth';
 import { SignInPage } from './features/auth/SignInPage';
@@ -12,6 +12,8 @@ import { EditTripPage, NewTripPage } from './features/trips/TripFormPage';
 import { JoinPage } from './features/trips/JoinPage';
 import { ExpensesPage } from './features/expenses/ExpensesPage';
 import { BalancesPage } from './features/balances/BalancesPage';
+import { MoneyLayout } from './features/money/MoneyLayout';
+import { BudgetPage } from './features/money/BudgetPage';
 import { ErrorToasts } from './components/ErrorToasts';
 
 const router = createBrowserRouter([
@@ -32,7 +34,17 @@ const router = createBrowserRouter([
       { path: 'trips/new', element: <NewTripPage /> },
       { path: 'join/:code', element: <JoinPage /> },
       { path: 'expenses', element: <ExpensesPage /> },
-      { path: 'balances', element: <BalancesPage /> },
+      {
+        path: 'money',
+        element: <MoneyLayout />,
+        children: [
+          { index: true, element: <Navigate to="/money/balances" replace /> },
+          { path: 'budget', element: <BudgetPage /> },
+          { path: 'balances', element: <BalancesPage /> },
+        ],
+      },
+      { path: 'balances', element: <Navigate to="/money/balances" replace /> },
+      { path: 'budget', element: <Navigate to="/money/budget" replace /> },
       { path: 'more', element: <MorePage /> },
       {
         path: '*',

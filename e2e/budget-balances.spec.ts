@@ -5,6 +5,7 @@ import {
   createTrip,
   istDate,
   openAddExpense,
+  inviteGuest,
   pickMyFamily,
   setDates,
 } from './trip-helpers';
@@ -38,7 +39,10 @@ async function nets(page: Page): Promise<number[]> {
   return values;
 }
 
-test('a budget shows each family its planned share @budget', async ({ page }, testInfo) => {
+test('a budget shows each family its planned share, read-only for members @budget', async ({
+  page,
+  browser,
+}, testInfo) => {
   const suffix = `${testInfo.project.name}-${testInfo.retry}`;
   await signIn(page, `bud-org-${suffix}`, 'Bina Budget');
   await createTrip(page, `Budget trip ${suffix}`);
@@ -49,6 +53,7 @@ test('a budget shows each family its planned share @budget', async ({ page }, te
   await pickMyFamily(page, 'Family A');
 
   // ₹12,000 equal: ₹3,000 each. ₹36,000 per head over 12 adults: ₹3,000 an adult.
+  await page.goto('/money/budget');
   await addBudgetLine(page, '12000', '⛽ Fuel', 'Equal per family');
   await addBudgetLine(page, '36000', '🏨 Stay', 'Per head');
 
@@ -61,6 +66,20 @@ test('a budget shows each family its planned share @budget', async ({ page }, te
   await expect(planned('Family D')).toHaveText('₹12,000');
   await expect(page.getByTestId('budget-vs-actual')).toContainText('Fuel');
   await expect(page.getByTestId('budget-vs-actual')).toContainText('Stay');
+
+  // A member sees the same budget, read-only.
+  const { guest, close } = await inviteGuest(
+    page,
+    browser,
+    `bud-guest-${suffix}`,
+    'Gita Guest',
+    'Family B',
+  );
+  await guest.goto('/money/budget');
+  await expect(guest.getByTestId('budget-total')).toHaveText('₹48,000');
+  await expect(guest.getByTestId('budget-read-only')).toBeVisible();
+  await expect(guest.getByRole('button', { name: 'Add budget line' })).toHaveCount(0);
+  await close();
 
   // The dashboard's checklist ticks "Budget set" before the trip.
   await setDates(page, istDate(10), istDate(13));
@@ -84,6 +103,7 @@ test('balances net to zero and settle with "Mark as paid", even offline @balance
   await addEqualExpense(page, '3000', 'Fuel', 'Family B');
 
   await page.goto('/balances');
+  await expect(page).toHaveURL('/money/balances');
   await expect(page.getByTestId('family-balance')).toHaveCount(3);
   await expect(page.getByTestId('my-balance')).toHaveText('You get back ₹5,000');
   const before = await nets(page);
