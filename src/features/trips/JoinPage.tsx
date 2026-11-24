@@ -12,7 +12,7 @@ import {
   useTrip,
   type InviteLookup,
 } from './trips.data';
-import { familySize, nextFamilyColor, type Trip } from './model';
+import { familySize, nextFamilyColor, type InvitePreview, type Trip } from './model';
 import { FamilyFormView } from './FamiliesSection';
 import { Button, Card } from '../../components/ui';
 import { formatDateRange } from '../../lib/dates';
@@ -111,15 +111,7 @@ export function JoinPage() {
       )}
 
       {step.kind === 'ready' && !alreadyMember && (
-        <Card className="space-y-4 text-center">
-          <h2 className="text-xl font-semibold text-slate-900">You're invited to a trip</h2>
-          <p className="text-slate-600">
-            Join to see the plan, add expenses and split them with the other families.
-          </p>
-          <Button onClick={() => void join()} className="w-full">
-            Join the trip
-          </Button>
-        </Card>
+        <InvitationCard preview={step.lookup.invite.preview} onJoin={() => void join()} />
       )}
 
       {step.kind === 'joining' && <Card>Joining…</Card>}
@@ -205,6 +197,41 @@ function TripSummary({ trip }: { trip: Trip }) {
         {formatDateRange(trip.startDate, trip.endDate)}
         {trip.destination && ` · ${trip.destination}`}
       </p>
+    </div>
+  );
+}
+
+export function InvitationCard({
+  preview,
+  onJoin,
+}: {
+  preview: InvitePreview | null;
+  onJoin: () => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+      <div className="bg-gradient-to-br from-teal-600 to-teal-800 p-6 text-white">
+        <p className="text-sm text-teal-100" data-testid="inviter">
+          {preview?.ownerName ? `${preview.ownerName} invited you to` : "You're invited to"}
+        </p>
+        <h2 className="mt-1 text-2xl font-semibold break-words" data-testid="invite-trip-name">
+          {preview?.tripName ?? 'a trip'}
+        </h2>
+        {preview && (
+          <p className="mt-2 text-sm text-teal-50">
+            {formatDateRange(preview.tripStartDate, preview.tripEndDate)}
+            {preview.tripDestination && ` · ${preview.tripDestination}`}
+          </p>
+        )}
+      </div>
+      <div className="space-y-4 p-6 text-center">
+        <p className="text-slate-600">
+          Join to see the plan, add expenses and split them fairly with the other families.
+        </p>
+        <Button onClick={onJoin} className="w-full">
+          Join the trip
+        </Button>
+      </div>
     </div>
   );
 }

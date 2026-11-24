@@ -22,14 +22,19 @@ Only the user can read or write their own document.
 
 ## `invites/{code}`
 
-The document ID **is** the invite code (≥ 128 bits, URL-safe). Nobody can list this collection;
-knowing the code is what grants a `get`.
+The document ID **is** the invite code (≥ 128 bits, URL-safe). Only a trip's organisers can list
+its invites; anyone else needs the code to `get` one.
 
 | Field | Type | Notes |
 |---|---|---|
 | `tripId` | string | |
 | `active` | bool | Organisers turn an invite off |
 | `createdBy`, `createdAt` | | |
+| `tripName`, `tripStartDate`, `tripEndDate`, `tripDestination` | string | Preview for the join page; must match the trip. Refreshed when organisers edit the trip |
+| `ownerName` | string | The trip owner's display name, shown as who's inviting (whoever made the link) |
+
+Invites created before the preview fields existed have none; the join page then shows a generic
+invitation.
 
 ## `trips/{tripId}`
 
@@ -112,4 +117,5 @@ Settlements: `fromFamilyId`, `toFamilyId`, `amountPaise`, `date`, `method` (`upi
 | Organiser | Everything a member can, plus edit the trip, legs, families, budget, invites and roles |
 | Owner | Everything an organiser can; cannot be removed by others |
 
-Nobody can change their own `role`, add someone else to `memberUids`, or list `invites`.
+Nobody can change their own `role`, add someone else to `memberUids`, or list another trip's
+`invites`.

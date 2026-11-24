@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { useActiveTrip } from './ActiveTripProvider';
-import { createTrip, updateTrip } from './trips.data';
-import { isOrganizer, type Trip } from './model';
+import { createTrip, updateTrip, useInvites, useMembers } from './trips.data';
+import { isOrganizer, ownerNameOf, type Trip } from './model';
 import { validateTrip, type Errors, type TripForm } from './validation';
 import { Button, Card, Field, inputClass } from '../../components/ui';
 
@@ -46,6 +46,8 @@ function TripFormView({ trip }: { trip: Trip | null }) {
   const navigate = useNavigate();
   const [form, setForm] = useState<TripForm>(() => formFrom(trip));
   const [errors, setErrors] = useState<Errors<keyof TripForm>>({});
+  const invites = useInvites(trip?.id ?? null, !!trip);
+  const members = useMembers(trip?.id ?? null);
 
   const set = (key: keyof TripForm) => (value: string) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -54,8 +56,14 @@ function TripFormView({ trip }: { trip: Trip | null }) {
     const { input, errors } = validateTrip(form);
     setErrors(errors);
     if (!input || !user) return;
-    if (trip) updateTrip(trip.id, input);
-    else createTrip(user, input);
+    if (trip) {
+      updateTrip(
+        trip.id,
+        input,
+        invites.data.filter((i) => i.active).map((i) => i.code),
+        ownerNameOf(trip, members.data),
+      );
+    } else createTrip(user, input);
     void navigate('/trip');
   }
 

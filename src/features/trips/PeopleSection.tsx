@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { createInvite, setInviteActive, setMemberFamily, setMemberRole } from './trips.data';
-import { inviteLink, type Invite, type Member, type Trip, type TripFamily } from './model';
+import {
+  inviteLink,
+  ownerNameOf,
+  type Invite,
+  type Member,
+  type Trip,
+  type TripFamily,
+} from './model';
 import { Button, Card, EmptyState, inputClass, SectionHeader } from '../../components/ui';
 
 const ROLE_LABEL: Record<Member['role'], string> = {
@@ -110,10 +117,12 @@ function Avatar({ member }: { member: Member }) {
 export function InviteSection({
   trip,
   invites,
+  members,
   uid,
 }: {
   trip: Trip;
   invites: Invite[];
+  members: Member[];
   uid: string;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
@@ -173,7 +182,12 @@ export function InviteSection({
           </ul>
         )}
         {active.length === 0 && (
-          <Button onClick={() => createInvite(trip.id, uid)}>Create invite link</Button>
+          <Button
+            disabled={members.length === 0}
+            onClick={() => createInvite(trip, uid, ownerNameOf(trip, members))}
+          >
+            Create invite link
+          </Button>
         )}
         <p className="text-xs text-slate-500">
           Anyone with an active link can join. Turn it off once everyone is in, and make a new one
