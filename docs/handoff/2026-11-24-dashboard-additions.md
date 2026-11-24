@@ -1,11 +1,11 @@
 ---
 title: Dashboard additions — quick add, budget at a glance, recent expenses, important info
-status: in-progress
+status: done
 assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-24-itinerary-replaces-legs.md, 2026-11-24-who-can-change-money.md]
 plan_pr: 12
-impl_pr: null
+impl_pr: 15
 review: human
 ---
 
@@ -56,3 +56,25 @@ Any other new trip field.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** 7028bb9..c62f397 · **PR:** #15 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45419539786
+
+### Verified acceptance criteria
+- [x] Rules: only organisers change `importantInfo`; more than 4,000 characters (or a non-string) is rejected — `firestore rules (emulator)` job
+- [x] E2E: an organiser adds important info with a phone number; a member sees it with a tappable `tel:` link and no Edit; quick add opens the add-expense sheet — `e2e` job, `e2e/home.spec.ts`
+- [x] E2E: budget at a glance (₹2,500 of ₹10,000; your family ₹1,250 of ₹5,000) and recent expenses reflect a new expense — same test
+- [x] Home renders offline with every card from cache — `e2e` job, `@offline` in `e2e/home.spec.ts`
+
+### Deviations
+- **Emergency short codes** (100, 101, 102, 108, 112, 1091) are tappable too, but only right after a word that names them ("Ambulance: 108"), so other 3-digit numbers stay plain text. Unit-tested alongside the mobile and landline detection.
+- During the trip, the stats cards (days, families, people, km) move to the bottom of Home; before and after the trip they stay near the top.
+- The add-expense sheet now waits for families and members to load, so "paid by" defaults correctly on a direct `/expenses?add=1` load.
+- **CI found a real case:** a write made just before a full page reload can be lost. The test now waits for sync before reloading. In the app, normal in-app navigation is unaffected, and `docs/dry-run.md` already tests "close the app right after saving" on real phones.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
