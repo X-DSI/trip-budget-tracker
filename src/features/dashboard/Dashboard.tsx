@@ -101,7 +101,7 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
             Time to square up. Check who owes whom and settle over UPI.
           </p>
           <Link
-            to="/balances"
+            to="/money/balances"
             className="mt-4 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-teal-800"
           >
             See balances
@@ -367,7 +367,7 @@ function FamilyBalance({ trip, myFamilyId }: { trip: Trip; myFamilyId: string | 
           {yourNetLabel(net)}
         </p>
       )}
-      <Link to="/balances" className="mt-2 inline-block text-sm font-medium text-teal-700">
+      <Link to="/money/balances" className="mt-2 inline-block text-sm font-medium text-teal-700">
         See who owes whom
       </Link>
     </Card>

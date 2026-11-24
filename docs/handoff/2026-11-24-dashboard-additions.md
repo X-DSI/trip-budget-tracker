@@ -4,7 +4,7 @@ status: open
 assignee: agent:any
 base_sha: c3bd444
 adrs: [2026-11-24-itinerary-replaces-legs.md, 2026-11-24-who-can-change-money.md]
-plan_pr: null
+plan_pr: 12
 impl_pr: null
 review: human
 ---

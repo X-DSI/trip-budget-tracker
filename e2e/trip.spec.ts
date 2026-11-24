@@ -39,8 +39,13 @@ test('an organiser plans a trip and a second adult joins by link @trip @layout',
   await expect(guest).toHaveURL('/trip');
   await expect(guest.getByTestId('trip-name')).toHaveText(`Ooty trip ${suffix}`);
   await expect(guest.getByText('Hosur → Ooty')).toBeVisible();
-  // Members can't edit the plan.
+  // Members can't edit the plan, and see their family instead of the invite card.
   await expect(guest.getByRole('button', { name: 'Add leg' })).toHaveCount(0);
+  await expect(guest.getByTestId('your-family')).toContainText('Family B');
+  await expect(guest.getByTestId('invite-link')).toHaveCount(0);
+  await expect(guest.getByTestId('your-family')).toContainText(
+    'Need to invite someone? Ask Olive Organiser',
+  );
   await expectNoHorizontalScroll(guest);
   await other.close();
 

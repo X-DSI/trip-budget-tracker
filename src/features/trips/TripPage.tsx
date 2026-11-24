@@ -8,9 +8,7 @@ import { FamiliesSection } from './FamiliesSection';
 import { InviteSection, PeopleSection } from './PeopleSection';
 import { NoTripCard } from './NoTripCard';
 import { formatDateRange, tripLength } from '../../lib/dates';
-import { BudgetSection } from '../budget/BudgetSection';
-import { useBudget } from '../budget/budget.data';
-import { useExpenses } from '../expenses/expenses.data';
+import { YourFamilyCard } from './YourFamilyCard';
 
 export function TripPage() {
   const { user } = useAuth();
@@ -26,8 +24,6 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
   const families = useFamilies(trip.id);
   const members = useMembers(trip.id);
   const invites = useInvites(trip.id, canEdit);
-  const budget = useBudget(trip.id);
-  const expenses = useExpenses(trip.id);
   const me = members.data.find((m) => m.uid === uid);
   const needsFamily = !members.loading && me && !me.familyId;
 
@@ -40,7 +36,7 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
           className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200"
           role="status"
         >
-          Pick your family under <strong>People</strong> so your expenses count for the right
+          Pick your family under <strong>Your family</strong> so your expenses count for the right
           family.
         </p>
       )}
@@ -61,20 +57,19 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
           canEdit={canEdit}
           uid={uid}
         />
-        {canEdit && (
-          <InviteSection trip={trip} invites={invites.data} members={members.data} uid={uid} />
-        )}
+        <div className="space-y-8">
+          <YourFamilyCard
+            trip={trip}
+            families={families.data}
+            members={members.data}
+            uid={uid}
+            canEdit={canEdit}
+          />
+          {canEdit && (
+            <InviteSection trip={trip} invites={invites.data} members={members.data} uid={uid} />
+          )}
+        </div>
       </div>
-
-      <BudgetSection
-        trip={trip}
-        lines={budget.data}
-        expenses={expenses.data}
-        families={families.data}
-        myFamilyId={me?.familyId ?? null}
-        canEdit={canEdit}
-        uid={uid}
-      />
     </div>
   );
 }

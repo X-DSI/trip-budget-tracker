@@ -14,6 +14,10 @@ test('phone shows bottom tabs, desktop shows the sidebar @layout', async ({ page
   const tabs = page.getByTestId('bottom-tabs');
   const sidebar = page.getByTestId('sidebar');
 
+  const nav = testInfo.project.name === 'phone' ? tabs : sidebar;
+  await expect(nav.getByRole('link', { name: 'Money' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Balances' })).toHaveCount(0);
+
   if (testInfo.project.name === 'phone') {
     await expect(tabs).toBeVisible();
     await expect(sidebar).toBeHidden();

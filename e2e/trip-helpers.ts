@@ -1,4 +1,5 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Browser, type Page } from '@playwright/test';
+import { signIn } from './helpers';
 
 export async function createTrip(page: Page, name: string) {
   await page.goto('/trips/new');
@@ -73,4 +74,28 @@ export async function openAddExpense(page: Page) {
     .filter({ visible: true })
     .click();
   return page.getByRole('dialog');
+}
+
+/** Organiser creates an invite; a second adult (own browser context) joins into `family`. */
+export async function inviteGuest(
+  page: Page,
+  browser: Browser,
+  uid: string,
+  name: string,
+  family: string,
+): Promise<{ guest: Page; close: () => Promise<void> }> {
+  await page.goto('/trip');
+  const existing = page.getByTestId('invite-link');
+  if ((await existing.count()) === 0) {
+    await page.getByRole('button', { name: 'Create invite link' }).click();
+  }
+  const link = await page.getByTestId('invite-link').first().inputValue();
+  const context = await browser.newContext({ viewport: page.viewportSize() ?? undefined });
+  const guest = await context.newPage();
+  await signIn(guest, uid, name);
+  await guest.goto(new URL(link).pathname);
+  await guest.getByRole('button', { name: 'Join the trip' }).click();
+  await guest.getByRole('button', { name: new RegExp(family) }).click();
+  await expect(guest).toHaveURL('/trip');
+  return { guest, close: () => context.close() };
 }
