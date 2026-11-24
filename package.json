@@ -19,7 +19,8 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-trip-budget \"vitest run --config vitest.rules.config.ts\"",
     "test:e2e": "playwright test",
     "deploy:rules:dev": "firebase deploy --only firestore:rules,firestore:indexes --project dev",
-    "deploy:rules:prod": "firebase deploy --only firestore:rules,firestore:indexes --project prod"
+    "deploy:rules:prod": "firebase deploy --only firestore:rules,firestore:indexes --project prod",
+    "pretest:e2e": "node scripts/free-e2e-ports.mjs"
   },
   "dependencies": {
     "firebase": "^13.4.0",

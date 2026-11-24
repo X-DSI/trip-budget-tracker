@@ -39,5 +39,7 @@ export default defineConfig({
     url: `http://localhost:${port}`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
+    // Let `firebase emulators:exec` stop its emulators (a Java process) instead of orphaning them.
+    gracefulShutdown: { signal: 'SIGINT', timeout: 15_000 },
   },
 });
