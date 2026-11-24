@@ -1,11 +1,11 @@
 ---
 title: Dashboard — countdown before the trip, welcome during it, summary after
-status: in-progress
+status: done
 assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-multi-trip-data-model.md, 2026-11-23-offline-first-pwa.md]
 plan_pr: 1
-impl_pr: null
+impl_pr: 7
 review: auto
 ---
 
@@ -53,3 +53,25 @@ Anything needing a new field in `docs/data-model.md`.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done (one manual check left for the maintainer)  
+**Commits:** 7eac082..c480c51 · **PR:** #7 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45368507680
+
+### Verified acceptance criteria
+- [x] `tripPhase` boundaries: 23:59 IST the day before, 00:00 on the first day, 23:59:59 on the last day, 00:00 the day after, a one-day trip, and a device in another timezone — `src/features/dashboard/phase.test.ts` in the unit-test job
+- [x] E2E: before shows the countdown and checklist; during shows "Day 2 of 4"; after shows the welcome-back card — `e2e` job, phone and desktop (`e2e/dashboard.spec.ts`)
+- [x] The dashboard renders offline after one online visit — same test, offline reload step
+
+### Unverified (manual) criteria
+- [ ] Looks good at 390×844 and 1440×900 — screenshots reviewed during development; please confirm on the PR preview
+
+### Deviations
+- The e2e sets trip dates relative to today instead of mocking the clock, so Firebase Auth token timing isn't affected by a fake clock.
+- The checklist also includes "You've picked your family", because splits depend on it.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
