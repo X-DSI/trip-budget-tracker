@@ -1,7 +1,7 @@
 ---
 title: Day-by-day itinerary (replaces travel legs)
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-24-itinerary-replaces-legs.md, 2026-11-23-multi-trip-data-model.md]
 plan_pr: 12
