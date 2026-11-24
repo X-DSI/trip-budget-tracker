@@ -51,19 +51,27 @@ invitation.
 | `memberUids` | string[] | Everyone who has joined; used for queries and rules |
 | `organizerUids` | string[] | Owner plus promoted organisers |
 | `notes` | string | Optional |
+| `importantInfo` | string | Optional, ≤ 4,000 characters. Pinned on the dashboard: hotel addresses, bookings, emergency contacts. Organisers edit |
 | `createdAt`, `updatedAt` | timestamp | |
 
-### `trips/{tripId}/legs/{legId}` — how the group travels
+### `trips/{tripId}/itinerary/{itemId}` — the day-by-day plan
+
+Replaces the former `legs` collection
+([itinerary ADR](adr/2026-11-24-itinerary-replaces-legs.md)).
 
 | Field | Type | Notes |
 |---|---|---|
-| `mode` | `car` \| `bus` \| `train` \| `flight` \| `other` | |
-| `from`, `to` | string | |
-| `date` | `YYYY-MM-DD` \| null | |
-| `vehicles` | int | Number of cars / buses; 1 for train or flight bookings |
-| `km` | int \| null | Expected distance for this leg |
-| `notes` | string | e.g. PNR, flight number, who is driving |
-| `order` | int | Display order |
+| `day` | `YYYY-MM-DD` | Within the trip's dates |
+| `time` | `HH:MM` \| null | Optional; items without a time sort before timed ones |
+| `kind` | `travel` \| `sightseeing` \| `food` \| `stay` \| `activity` \| `other` | |
+| `title` | string | ≤ 100 characters, e.g. "Drive to Ooty", "Botanical Garden" |
+| `place` | string | Optional; also used for the "Open in Maps" link |
+| `notes` | string | Optional, ≤ 500: PNR, booking number, who's driving |
+| `mode` | `car` \| `bus` \| `train` \| `flight` \| `other` \| null | `travel` only |
+| `vehicles` | int \| null | `travel` only: number of cars or buses (1 for a booking) |
+| `km` | int \| null | `travel` only: expected distance |
+| `order` | int | Order within the day, for items at the same time |
+| `createdAt`, `updatedAt` | timestamp | |
 
 ### `trips/{tripId}/families/{familyId}`
 
@@ -137,7 +145,7 @@ Budget lines are deleted outright (no history needed for a plan).
 | Signed-in user | Create a trip (becoming its owner); read/write their own `users` doc; `get` an invite by code |
 | Holder of an active invite | Add their own uid to `memberUids` and create their own `members/{uid}` doc with role `member` |
 | Member | Read the trip and all its subcollections; set their own `familyId`; add a family; add expenses and edit or delete the ones they added; record or delete a settlement their own family paid or received |
-| Organiser | Everything a member can, plus edit the trip, legs, families, budget, invites and roles, and edit or delete anyone's expense or settlement |
+| Organiser | Everything a member can, plus edit the trip, its important info, the itinerary, families, budget, invites and roles, and edit or delete anyone's expense or settlement |
 | Owner | Everything an organiser can; cannot be removed by others |
 
 Nobody can change their own `role`, add someone else to `memberUids`, or list another trip's

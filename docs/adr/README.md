@@ -18,3 +18,4 @@ Accepted decisions live here; proposals live in [`proposed/`](proposed/).
 | 2026-11-23 | [Separate dev and prod Firebase projects; previews deploy only to dev](2026-11-23-separate-dev-and-prod-projects.md) | Accepted |
 | 2026-11-24 | [Invites carry a preview of the trip and the owner's name](2026-11-24-invite-preview.md) | Accepted |
 | 2026-11-24 | [Who can change expenses, the budget and settlements](2026-11-24-who-can-change-money.md) | Accepted |
+| 2026-11-24 | [A day-by-day itinerary replaces travel legs; important info is pinned on the trip](2026-11-24-itinerary-replaces-legs.md) | Accepted |
