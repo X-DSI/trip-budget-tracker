@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateFamily, validateLeg, validateTrip, type TripForm } from './validation';
+import { validateFamily, validateTrip, type TripForm } from './validation';
 
 const tripForm = (over: Partial<TripForm> = {}): TripForm => ({
   name: ' Ooty & Coorg ',
@@ -31,37 +31,6 @@ describe('validateTrip', () => {
     expect(input).toBeUndefined();
     expect(Object.keys(errors).sort()).toEqual(['endDate', 'expectedKm', 'kidWeight', 'name']);
     expect(validateTrip(tripForm({ startDate: '' })).errors.startDate).toBeTruthy();
-  });
-});
-
-describe('validateLeg', () => {
-  const leg = {
-    mode: 'car' as const,
-    from: 'Hosur',
-    to: 'Ooty',
-    date: '',
-    vehicles: 3,
-    km: '',
-    notes: '',
-  };
-
-  it('accepts a leg with optional fields blank', () => {
-    expect(validateLeg(leg).input).toEqual({
-      mode: 'car',
-      from: 'Hosur',
-      to: 'Ooty',
-      date: null,
-      vehicles: 3,
-      km: null,
-      notes: '',
-    });
-  });
-
-  it('needs a place and sane numbers', () => {
-    expect(validateLeg({ ...leg, from: '', to: '' }).errors.to).toBeTruthy();
-    expect(validateLeg({ ...leg, vehicles: 0 }).errors.vehicles).toBeTruthy();
-    expect(validateLeg({ ...leg, km: '12.5' }).errors.km).toBeTruthy();
-    expect(validateLeg({ ...leg, date: '2026-02-30' }).errors.date).toBeTruthy();
   });
 });
 

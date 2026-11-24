@@ -21,6 +21,8 @@ export interface TripPhase {
 
 interface ZonedParts {
   date: string;
+  /** Wall-clock time, HH:MM. */
+  time: string;
   /** Milliseconds between this instant and the same wall-clock time read as UTC. */
   offsetMs: number;
 }
@@ -63,6 +65,7 @@ export function zonedParts(instant: number, timeZone: string): ZonedParts {
   const wholeSeconds = Math.floor(instant / 1000) * 1000;
   return {
     date: `${parts.year}-${parts.month}-${parts.day}`,
+    time: `${parts.hour}:${parts.minute}`,
     offsetMs: asUtc - wholeSeconds,
   };
 }

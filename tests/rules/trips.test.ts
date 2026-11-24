@@ -9,6 +9,7 @@ import {
 import {
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -52,14 +53,16 @@ const family = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-const leg = (over: Record<string, unknown> = {}) => ({
+const item = (over: Record<string, unknown> = {}) => ({
+  day: '2026-12-04',
+  time: '07:30',
+  kind: 'travel',
+  title: 'Drive to Ooty',
+  place: 'Ooty',
+  notes: '',
   mode: 'car',
-  from: 'Hosur',
-  to: 'Ooty',
-  date: '2026-12-04',
   vehicles: 3,
   km: 300,
-  notes: '',
   order: 0,
   ...over,
 });
@@ -101,7 +104,7 @@ beforeEach(async () => {
       familyId: null,
     });
     await setDoc(doc(db, 'trips/t1/families/f1'), family({ name: 'Olive & co' }));
-    await setDoc(doc(db, 'trips/t1/legs/l1'), leg());
+    await setDoc(doc(db, 'trips/t1/itinerary/i1'), item());
     await setDoc(doc(db, `invites/${GOOD}`), { tripId: 't1', active: true, createdBy: 'olive' });
     await setDoc(doc(db, `invites/${OFF}`), { tripId: 't1', active: false, createdBy: 'olive' });
     await setDoc(doc(db, `invites/${OTHER}`), { tripId: 't2', active: true, createdBy: 'zed' });
@@ -126,7 +129,7 @@ describe('reading a trip', () => {
   it('lets members read the trip and everything under it', async () => {
     const db = as('mia');
     await assertSucceeds(getDoc(doc(db, 'trips/t1')));
-    await assertSucceeds(getDocs(collection(db, 'trips/t1/legs')));
+    await assertSucceeds(getDocs(collection(db, 'trips/t1/itinerary')));
     await assertSucceeds(getDocs(collection(db, 'trips/t1/families')));
     await assertSucceeds(getDocs(collection(db, 'trips/t1/members')));
     await assertSucceeds(
@@ -137,7 +140,7 @@ describe('reading a trip', () => {
   it('keeps non-members and signed-out visitors out', async () => {
     const db = as('sam');
     await assertFails(getDoc(doc(db, 'trips/t1')));
-    await assertFails(getDocs(collection(db, 'trips/t1/legs')));
+    await assertFails(getDocs(collection(db, 'trips/t1/itinerary')));
     await assertFails(getDocs(collection(db, 'trips/t1/families')));
     await assertFails(getDocs(collection(db, 'trips/t1/members')));
     await assertFails(getDocs(collection(db, 'trips')));
@@ -210,31 +213,58 @@ describe('creating a trip', () => {
 });
 
 describe('editing a trip', () => {
-  it('lets organisers edit details, legs and families', async () => {
+  it('lets organisers edit details, the itinerary and families', async () => {
     const db = as('olive');
     await assertSucceeds(updateDoc(doc(db, 'trips/t1'), { name: 'Coorg only', expectedKm: 600 }));
-    await assertSucceeds(setDoc(doc(db, 'trips/t1/legs/l2'), leg({ mode: 'train', order: 1 })));
-    await assertSucceeds(updateDoc(doc(db, 'trips/t1/legs/l1'), { vehicles: 4 }));
+    await assertSucceeds(
+      setDoc(
+        doc(db, 'trips/t1/itinerary/i2'),
+        item({
+          kind: 'sightseeing',
+          title: 'Botanical Garden',
+          mode: null,
+          vehicles: null,
+          km: null,
+        }),
+      ),
+    );
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/itinerary/i3'), item({ time: null, order: 1 })));
+    await assertSucceeds(updateDoc(doc(db, 'trips/t1/itinerary/i1'), { vehicles: 4 }));
+    await assertSucceeds(deleteDoc(doc(db, 'trips/t1/itinerary/i3')));
     await assertSucceeds(
       setDoc(doc(db, 'trips/t1/families/f2'), family({ name: 'Mia & co', order: 1 })),
     );
     await assertSucceeds(updateDoc(doc(db, 'trips/t1/families/f1'), { active: false }));
   });
 
-  it('stops members from editing details, legs, families or roles', async () => {
+  it('stops members from editing details, the itinerary, families or roles', async () => {
     const db = as('mia');
     await assertFails(updateDoc(doc(db, 'trips/t1'), { name: 'Mine now' }));
     await assertFails(updateDoc(doc(db, 'trips/t1'), { organizerUids: ['olive', 'mia'] }));
-    await assertFails(setDoc(doc(db, 'trips/t1/legs/l2'), leg()));
-    await assertFails(updateDoc(doc(db, 'trips/t1/legs/l1'), { vehicles: 9 }));
+    await assertFails(setDoc(doc(db, 'trips/t1/itinerary/i2'), item()));
+    await assertFails(updateDoc(doc(db, 'trips/t1/itinerary/i1'), { vehicles: 9 }));
+    await assertFails(deleteDoc(doc(db, 'trips/t1/itinerary/i1')));
     await assertFails(updateDoc(doc(db, 'trips/t1/families/f1'), { adults: 9 }));
     await assertFails(updateDoc(doc(db, 'trips/t1/members/olive'), { role: 'member' }));
   });
 
-  it('rejects invalid legs and families even from organisers', async () => {
+  it('rejects invalid itinerary items and families even from organisers', async () => {
     const db = as('olive');
-    await assertFails(setDoc(doc(db, 'trips/t1/legs/l3'), leg({ mode: 'rocket' })));
-    await assertFails(setDoc(doc(db, 'trips/t1/legs/l3'), leg({ vehicles: 0 })));
+    const bad = [
+      { mode: 'rocket' },
+      { vehicles: 0 },
+      { kind: 'party' },
+      { day: '2026-12-03' }, // before the trip
+      { day: '2026-12-08' }, // after the trip
+      { time: '25:00' },
+      { time: '7:30' },
+      { title: '' },
+      { kind: 'food', mode: 'car' }, // travel fields on a non-travel item
+      { surprise: true },
+    ];
+    for (const over of bad) {
+      await assertFails(setDoc(doc(db, 'trips/t1/itinerary/bad'), item(over)));
+    }
     await assertFails(setDoc(doc(db, 'trips/t1/families/f3'), family({ adults: 0 })));
     await assertFails(updateDoc(doc(db, 'trips/t1'), { endDate: '2026-12-01' }));
   });

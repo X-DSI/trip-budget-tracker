@@ -5,7 +5,6 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
-  deleteDoc,
   doc,
   getDocFromServer,
   orderBy,
@@ -27,8 +26,6 @@ import {
   invitePreview,
   newInviteCode,
   type Invite,
-  type Leg,
-  type LegMode,
   type Member,
   type Role,
   type Trip,
@@ -60,22 +57,6 @@ function toTrip(snap: DocumentSnapshot): Trip {
     memberUids: strList(d.memberUids),
     organizerUids: strList(d.organizerUids),
     notes: str(d.notes),
-  };
-}
-
-function toLeg(snap: DocumentSnapshot): Leg {
-  const d = snap.data() ?? {};
-  const mode = str(d.mode, 'car');
-  return {
-    id: snap.id,
-    mode: (['car', 'bus', 'train', 'flight', 'other'].includes(mode) ? mode : 'other') as LegMode,
-    from: str(d.from),
-    to: str(d.to),
-    date: strOrNull(d.date),
-    vehicles: num(d.vehicles, 1),
-    km: numOrNull(d.km),
-    notes: str(d.notes),
-    order: num(d.order, 0),
   };
 }
 
@@ -136,14 +117,6 @@ export function useMyTrips(uid: string | undefined) {
 
 export function useTrip(tripId: string | null) {
   return useLiveDoc(tripId ? `trip:${tripId}` : null, () => doc(db, 'trips', tripId!), toTrip);
-}
-
-export function useLegs(tripId: string | null) {
-  return useLiveQuery(
-    tripId ? `legs:${tripId}` : null,
-    () => query(collection(db, 'trips', tripId!, 'legs'), orderBy('order')),
-    toLeg,
-  );
 }
 
 export function useFamilies(tripId: string | null) {
@@ -243,41 +216,6 @@ export function setActiveTrip(uid: string, tripId: string) {
       { merge: true },
     ),
   );
-}
-
-export type LegInput = Omit<Leg, 'id' | 'order'>;
-
-export function addLeg(tripId: string, input: LegInput, order: number) {
-  const ref = doc(collection(db, 'trips', tripId, 'legs'));
-  run(
-    'add the leg',
-    setDoc(ref, { ...input, order, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }),
-  );
-}
-
-export function updateLeg(tripId: string, legId: string, input: LegInput) {
-  run(
-    'save the leg',
-    updateDoc(doc(db, 'trips', tripId, 'legs', legId), { ...input, updatedAt: serverTimestamp() }),
-  );
-}
-
-export function deleteLeg(tripId: string, legId: string) {
-  run('delete the leg', deleteDoc(doc(db, 'trips', tripId, 'legs', legId)));
-}
-
-/** Swap two legs' positions. */
-export function swapLegs(tripId: string, a: Leg, b: Leg) {
-  const batch = writeBatch(db);
-  batch.update(doc(db, 'trips', tripId, 'legs', a.id), {
-    order: b.order,
-    updatedAt: serverTimestamp(),
-  });
-  batch.update(doc(db, 'trips', tripId, 'legs', b.id), {
-    order: a.order,
-    updatedAt: serverTimestamp(),
-  });
-  run('reorder the legs', batch.commit());
 }
 
 export type FamilyInput = Pick<TripFamily, 'name' | 'adults' | 'kids' | 'upiId' | 'color'>;

@@ -176,23 +176,32 @@ service cloud.firestore {
 
       allow delete: if false;
 
-      // ---------- legs: how the group travels ----------
+      // ---------- itinerary: the day-by-day plan (docs/adr/2026-11-24-itinerary-replaces-legs.md)
 
-      match /legs/{legId} {
-        function validLeg(d) {
-          return d.keys().hasOnly(['mode', 'from', 'to', 'date', 'vehicles', 'km', 'notes',
-              'order', 'createdAt', 'updatedAt'])
-            && d.mode in ['car', 'bus', 'train', 'flight', 'other']
-            && isText(d.get('from', ''), 100) && isText(d.get('to', ''), 100)
-            && isOptionalDate(d.get('date', null))
-            && d.vehicles is int && d.vehicles >= 1 && d.vehicles <= 50
-            && isOptionalInt(d.get('km', null), 20000)
+      match /itinerary/{itemId} {
+        function validItem(d) {
+          let t = tripBefore(tripId);
+          return d.keys().hasOnly(['day', 'time', 'kind', 'title', 'place', 'notes', 'mode',
+              'vehicles', 'km', 'order', 'createdAt', 'updatedAt'])
+            && isDate(d.day) && d.day >= t.startDate && d.day <= t.endDate
+            && (d.get('time', null) == null
+                || (d.time is string && d.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
+            && d.kind in ['travel', 'sightseeing', 'food', 'stay', 'activity', 'other']
+            && isRequiredText(d.title, 100)
+            && isText(d.get('place', ''), 200)
             && isText(d.get('notes', ''), 500)
-            && d.order is int;
+            && d.order is int
+            && (d.kind == 'travel'
+                ? (d.get('mode', null) in ['car', 'bus', 'train', 'flight', 'other']
+                    && d.get('vehicles', 1) is int
+                    && d.get('vehicles', 1) >= 1 && d.get('vehicles', 1) <= 50
+                    && isOptionalInt(d.get('km', null), 20000))
+                : (d.get('mode', null) == null && d.get('vehicles', null) == null
+                    && d.get('km', null) == null));
         }
 
         allow read: if isMember(tripId);
-        allow create, update: if isOrganizer(tripId) && validLeg(request.resource.data);
+        allow create, update: if isOrganizer(tripId) && validItem(request.resource.data);
         allow delete: if isOrganizer(tripId);
       }
 

@@ -143,7 +143,7 @@ function TripFormView({ trip }: { trip: Trip | null }) {
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
             label="Expected driving (km)"
-            hint="Total for the trip. Optional; legs can add up their own."
+            hint="Total for the trip. Optional; travel plans in the itinerary add up their own."
             error={errors.expectedKm}
           >
             {(id, d) => (

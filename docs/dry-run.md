@@ -16,7 +16,9 @@ Tick each box; write down anything odd (screenshot + phone model) in the notes a
 
 - [ ] Open the dry-run site, sign in with Google, and create a trip called **"Dry run"** with
       dates in the future, a destination and an expected distance.
-- [ ] Add two travel legs (one car with 2 cars, one train) and check the km and car totals.
+- [ ] Open **Trip → See full itinerary** and plan two days: a car drive (2 cars, with km) and
+      breakfast on day 1; a train ride and some sightseeing with a place on day 2. Check the km and
+      car totals.
 - [ ] Add every family with the right adults and kids, and your own UPI ID on your family.
 - [ ] Add a budget: one line equal per family (e.g. fuel ₹12,000) and one per head (e.g. stay
       ₹36,000). Check each family's planned share looks right.
@@ -33,8 +35,10 @@ Tick each box; write down anything odd (screenshot + phone model) in the notes a
   - Android (Chrome): menu → *Add to Home screen* / *Install app*.
   - iPhone (Safari): Share → *Add to Home Screen*. (Chrome on iPhone can't install it; use Safari.)
 - [ ] Everyone opens the app **from the home-screen icon**, not the browser, from now on.
-- [ ] **Check:** the dashboard shows the countdown and "Everyone has joined" ticks once all
-      adults are in.
+- [ ] **Check:** the dashboard shows the countdown, the Day 1 plan, and "Everyone has joined"
+      ticks once all adults are in.
+- [ ] Members open **Trip**: "Coming up" shows the next plans; **See full itinerary** shows every
+      day; tapping a place opens Google Maps. Members can't edit the plan.
 
 ## 2. Expenses with signal (10 min)
 
@@ -72,7 +76,7 @@ Tick each box; write down anything odd (screenshot + phone model) in the notes a
       paying** (or pay ₹1 to yourself if you want a real test).
 - [ ] Tap **Mark as paid** on one suggestion. **Check:** that debt disappears for everyone.
 - [ ] Delete that payment from the history. **Check:** the debt comes back.
-- [ ] **Trip tab → Budget:** check budget vs actual moved with the expenses.
+- [ ] **Money → Budget:** check budget vs actual moved with the expenses, and members can't edit it.
 
 ## 5. Wrap-up (5 min)
 
