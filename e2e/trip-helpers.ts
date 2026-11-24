@@ -42,3 +42,35 @@ export async function expectNoHorizontalScroll(page: Page) {
   );
   expect(overflow).toBeLessThanOrEqual(0);
 }
+
+/** Today ± `offset` days as YYYY-MM-DD in India, without depending on the runner's timezone. */
+export function istDate(offset: number): string {
+  const ist = new Date(Date.now() + 5.5 * 3600_000 + offset * 86_400_000);
+  return ist.toISOString().slice(0, 10);
+}
+
+export async function setDates(page: Page, start: string, end: string) {
+  await page.goto('/trip/edit');
+  await page.getByLabel('Starts').fill(start);
+  await page.getByLabel('Ends').fill(end);
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page).toHaveURL('/trip');
+  await page.getByRole('link', { name: 'Home' }).first().click();
+}
+
+export async function pickMyFamily(page: Page, name: string) {
+  await page.goto('/trip');
+  await page.getByRole('combobox').filter({ hasText: 'Not chosen' }).selectOption({ label: name });
+  // Let the write reach the server before the caller navigates away and reloads the page.
+  await expect(page.getByText('Pick your family under')).toBeHidden();
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
+}
+
+export async function openAddExpense(page: Page) {
+  await page.goto('/expenses');
+  await page
+    .getByRole('button', { name: /Add expense/ })
+    .filter({ visible: true })
+    .click();
+  return page.getByRole('dialog');
+}

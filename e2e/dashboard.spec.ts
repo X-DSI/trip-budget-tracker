@@ -1,20 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { signIn, waitForServiceWorker } from './helpers';
-
-/** Today ± `offset` days as YYYY-MM-DD in India, without depending on the runner's timezone. */
-function istDate(offset: number): string {
-  const ist = new Date(Date.now() + 5.5 * 3600_000 + offset * 86_400_000);
-  return ist.toISOString().slice(0, 10);
-}
-
-async function setDates(page: Page, start: string, end: string) {
-  await page.goto('/trip/edit');
-  await page.getByLabel('Starts').fill(start);
-  await page.getByLabel('Ends').fill(end);
-  await page.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page).toHaveURL('/trip');
-  await page.getByRole('link', { name: 'Home' }).first().click();
-}
+import { istDate, setDates } from './trip-helpers';
 
 test('the dashboard counts down, welcomes you during the trip, and wraps up after @dashboard @offline', async ({
   page,

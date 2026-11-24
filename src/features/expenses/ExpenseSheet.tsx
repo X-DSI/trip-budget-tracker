@@ -328,7 +328,7 @@ function ExpenseFormView({
   );
 }
 
-function Chip({
+export function Chip({
   name,
   checked,
   onChange,
@@ -360,7 +360,7 @@ export function FamilyDot({ family }: { family: TripFamily }) {
   );
 }
 
-function ParticipantsPicker({
+export function ParticipantsPicker({
   families,
   value,
   onChange,

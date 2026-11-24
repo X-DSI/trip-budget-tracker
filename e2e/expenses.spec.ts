@@ -1,20 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { signIn } from './helpers';
-import { addFamily, createTrip } from './trip-helpers';
-
-async function pickMyFamily(page: Page, name: string) {
-  await page.goto('/trip');
-  await page.getByRole('combobox').filter({ hasText: 'Not chosen' }).selectOption({ label: name });
-}
-
-async function openAddExpense(page: Page) {
-  await page.goto('/expenses');
-  await page
-    .getByRole('button', { name: /Add expense/ })
-    .filter({ visible: true })
-    .click();
-  return page.getByRole('dialog');
-}
+import { addFamily, createTrip, openAddExpense, pickMyFamily } from './trip-helpers';
 
 test('a per-head dinner splits exactly, and only its creator or an organiser can edit it @expenses', async ({
   page,
