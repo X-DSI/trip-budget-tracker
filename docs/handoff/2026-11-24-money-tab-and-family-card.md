@@ -1,11 +1,11 @@
 ---
 title: Money tab (Budget | Balances) and a "Your family" card for members
-status: in-progress
+status: done
 assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-24-who-can-change-money.md]
 plan_pr: 12
-impl_pr: null
+impl_pr: 13
 review: auto
 ---
 
@@ -49,3 +49,24 @@ Any rules change.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** 925f7ca..cb468e0 · **PR:** #13 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45414973911
+
+### Verified acceptance criteria
+- [x] Phone shows 5 tabs including Money and no Balances tab; the desktop sidebar is the same — `e2e` job, `@layout` in `e2e/shell.spec.ts`
+- [x] A member sees the budget read-only on `/money/budget`; an organiser adds lines there — `e2e` job, `@budget`
+- [x] `/balances` lands on `/money/balances` — `e2e` job, `@balances`
+- [x] A member's Trip page shows "Your family" and no invite card — `e2e` job, `@trip`
+
+### Deviations
+- The **Change family** picker moved from the People list into the "Your family" card, so there's only one.
+- `/money` opens Balances by default (more useful on the road); `/budget` redirects to `/money/budget`.
+- `Card` now passes extra props through, which the new `data-testid`s needed.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
