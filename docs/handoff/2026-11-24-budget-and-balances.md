@@ -1,7 +1,7 @@
 ---
 title: Budget vs actual, balances and UPI settle-up
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: b15053f
 adrs: [2026-11-23-split-modes.md, 2026-11-23-expenses-are-the-source-of-truth.md, 2026-11-24-who-can-change-money.md]
 plan_pr: 8
