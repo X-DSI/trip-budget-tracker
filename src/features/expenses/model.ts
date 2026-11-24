@@ -50,12 +50,14 @@ export interface TripExpense extends Expense {
   updatedBy: string;
   /** Not yet acknowledged by the server. */
   pending: boolean;
+  /** When it was added (estimated locally until the server confirms), for "recent" lists. */
+  createdAtMs?: number;
 }
 
 /** What gets written (besides timestamps and who). */
 export type ExpenseInput = Omit<
   TripExpense,
-  'id' | 'createdBy' | 'updatedBy' | 'pending' | 'deleted'
+  'id' | 'createdBy' | 'updatedBy' | 'pending' | 'deleted' | 'createdAtMs'
 >;
 
 export interface ItemRow {

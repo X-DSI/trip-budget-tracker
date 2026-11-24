@@ -57,6 +57,7 @@ function toTrip(snap: DocumentSnapshot): Trip {
     memberUids: strList(d.memberUids),
     organizerUids: strList(d.organizerUids),
     notes: str(d.notes),
+    importantInfo: str(d.importantInfo),
   };
 }
 
@@ -205,6 +206,13 @@ export function updateTrip(
   const preview = invitePreview(input, ownerName);
   for (const code of activeInviteCodes) batch.update(doc(db, 'invites', code), { ...preview });
   run('save the trip', batch.commit());
+}
+
+export function updateImportantInfo(tripId: string, importantInfo: string) {
+  run(
+    'save the important info',
+    updateDoc(doc(db, 'trips', tripId), { importantInfo, updatedAt: serverTimestamp() }),
+  );
 }
 
 export function setActiveTrip(uid: string, tripId: string) {

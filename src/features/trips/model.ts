@@ -18,6 +18,8 @@ export interface Trip {
   memberUids: string[];
   organizerUids: string[];
   notes: string;
+  /** Pinned on Home: hotel addresses, bookings, emergency contacts. Organisers edit. */
+  importantInfo: string;
 }
 
 export interface TripFamily extends Family {

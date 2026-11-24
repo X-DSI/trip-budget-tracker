@@ -269,6 +269,14 @@ describe('editing a trip', () => {
     await assertFails(updateDoc(doc(db, 'trips/t1'), { endDate: '2026-12-01' }));
   });
 
+  it('lets only organisers pin important info, up to 4,000 characters', async () => {
+    const info = 'Sterling Fern Hill, Ooty\nDesk: 0423 2444444';
+    await assertSucceeds(updateDoc(doc(as('olive'), 'trips/t1'), { importantInfo: info }));
+    await assertFails(updateDoc(doc(as('mia'), 'trips/t1'), { importantInfo: 'mine now' }));
+    await assertFails(updateDoc(doc(as('olive'), 'trips/t1'), { importantInfo: 'x'.repeat(4001) }));
+    await assertFails(updateDoc(doc(as('olive'), 'trips/t1'), { importantInfo: 42 }));
+  });
+
   it('never lets organisers change membership or ownership directly', async () => {
     const db = as('olive');
     await assertFails(updateDoc(doc(db, 'trips/t1'), { memberUids: ['olive'] }));
