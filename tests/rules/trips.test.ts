@@ -306,7 +306,15 @@ describe('invites', () => {
     await assertFails(getDocs(collection(as('sam'), 'invites')));
   });
 
-  it('lets organisers create and turn off invites', async () => {
+  const preview = {
+    tripName: 'Ooty & Coorg',
+    tripStartDate: '2026-12-04',
+    tripEndDate: '2026-12-07',
+    tripDestination: 'Ooty, Coorg',
+    ownerName: 'Olive',
+  };
+
+  it('lets organisers create invites with a true preview, and turn them off', async () => {
     const db = as('olive');
     const code = 'freshInviteCode_12345678';
     await assertSucceeds(
@@ -315,20 +323,51 @@ describe('invites', () => {
         active: true,
         createdBy: 'olive',
         createdAt: serverTimestamp(),
+        ...preview,
       }),
     );
     await assertSucceeds(updateDoc(doc(db, `invites/${code}`), { active: false }));
     await assertFails(updateDoc(doc(db, `invites/${code}`), { tripId: 't2' }));
     await assertFails(
-      setDoc(doc(db, 'invites/short'), { tripId: 't1', active: true, createdBy: 'olive' }),
+      setDoc(doc(db, 'invites/short'), {
+        tripId: 't1',
+        active: true,
+        createdBy: 'olive',
+        ...preview,
+      }),
     );
     await assertFails(
       setDoc(doc(as('mia'), 'invites/miasInviteCode_123456789'), {
         tripId: 't1',
         active: true,
         createdBy: 'mia',
+        ...preview,
       }),
     );
+  });
+
+  it('rejects invites with a missing or forged preview', async () => {
+    const db = as('olive');
+    const base = { tripId: 't1', active: true, createdBy: 'olive' };
+    await assertFails(setDoc(doc(db, 'invites/noPreviewInvite_1234567'), base));
+    await assertFails(
+      setDoc(doc(db, 'invites/forgedNameInvite_123456'), { ...base, ...preview, tripName: 'Goa!' }),
+    );
+    await assertFails(
+      setDoc(doc(db, 'invites/forgedOwnerInvite_12345'), { ...base, ...preview, ownerName: 'Mia' }),
+    );
+  });
+
+  it('refreshes the preview together with a trip edit, and only then', async () => {
+    const db = as('olive');
+    const ok = writeBatch(db);
+    ok.update(doc(db, 'trips/t1'), { name: 'Coorg only' });
+    ok.update(doc(db, `invites/${GOOD}`), { ...preview, tripName: 'Coorg only' });
+    await assertSucceeds(ok.commit());
+
+    await assertFails(updateDoc(doc(db, `invites/${GOOD}`), { tripName: 'Somewhere else' }));
+    // Older invites without a preview can still be turned off.
+    await assertSucceeds(updateDoc(doc(db, `invites/${OFF}`), { active: true }));
   });
 });
 

@@ -83,17 +83,40 @@ service cloud.firestore {
     // ---------- invites (document ID is the code) ----------
 
     match /invites/{code} {
+      // A preview of the trip, so the join page can show what you're joining. It must match the
+      // trip as it will be after this write, so nobody can forge it.
+      function previewKeys() {
+        return ['tripName', 'tripStartDate', 'tripEndDate', 'tripDestination', 'ownerName'];
+      }
+
+      function previewMatchesTrip(d) {
+        let t = tripAfter(d.tripId);
+        return d.tripName == t.name
+          && d.tripStartDate == t.startDate
+          && d.tripEndDate == t.endDate
+          && d.tripDestination == t.get('destination', '')
+          && d.ownerName == getAfter(
+               /databases/$(database)/documents/trips/$(d.tripId)/members/$(t.ownerUid))
+               .data.get('displayName', '');
+      }
+
       // Knowing the code is what grants access; nobody can browse other trips' invites.
       allow get: if signedIn();
       allow list: if isOrganizer(resource.data.tripId);
       allow create: if isOrganizer(request.resource.data.tripId)
         && code.size() >= 22
-        && request.resource.data.keys().hasOnly(['tripId', 'active', 'createdBy', 'createdAt'])
+        && request.resource.data.keys().hasOnly(
+             ['tripId', 'active', 'createdBy', 'createdAt'].concat(previewKeys()))
+        && request.resource.data.keys().hasAll(previewKeys())
         && request.resource.data.active == true
-        && request.resource.data.createdBy == me();
+        && request.resource.data.createdBy == me()
+        && previewMatchesTrip(request.resource.data);
+      // Organisers turn invites on or off, and refresh the preview when the trip changes.
       allow update: if isOrganizer(resource.data.tripId)
-        && changedOnly(['active'])
-        && request.resource.data.active is bool;
+        && changedOnly(['active'].concat(previewKeys()))
+        && request.resource.data.active is bool
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(previewKeys())
+            || previewMatchesTrip(request.resource.data));
       allow delete: if false;
     }
 

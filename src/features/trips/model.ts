@@ -47,10 +47,34 @@ export interface Member {
   role: Role;
 }
 
+export interface InvitePreview {
+  tripName: string;
+  tripStartDate: string;
+  tripEndDate: string;
+  tripDestination: string;
+  ownerName: string;
+}
+
 export interface Invite {
   code: string;
   tripId: string;
   active: boolean;
+  /** Missing on invites made before previews existed. */
+  preview: InvitePreview | null;
+}
+
+/** The preview an invite should carry for this trip (docs/adr/2026-11-24-invite-preview.md). */
+export function invitePreview(
+  trip: Pick<Trip, 'name' | 'startDate' | 'endDate' | 'destination'>,
+  ownerName: string,
+): InvitePreview {
+  return {
+    tripName: trip.name,
+    tripStartDate: trip.startDate,
+    tripEndDate: trip.endDate,
+    tripDestination: trip.destination,
+    ownerName,
+  };
 }
 
 export const LEG_MODES: { value: LegMode; label: string; vehicleLabel: string }[] = [
@@ -175,4 +199,12 @@ export function pickActiveTrip(
     (a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id),
   );
   return sorted.find((t) => t.id === activeTripId) ?? sorted[0] ?? null;
+}
+
+/** The trip owner's display name, as shown on invites. */
+export function ownerNameOf(
+  trip: Pick<Trip, 'ownerUid'>,
+  members: Pick<Member, 'uid' | 'displayName'>[],
+) {
+  return members.find((m) => m.uid === trip.ownerUid)?.displayName ?? '';
 }

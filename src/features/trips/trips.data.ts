@@ -24,6 +24,7 @@ import { reportError, writeErrorMessage } from '../../lib/errors';
 import type { User } from '../../lib/auth';
 import {
   asFamilyColor,
+  invitePreview,
   newInviteCode,
   type Invite,
   type Leg,
@@ -106,7 +107,21 @@ function toMember(snap: DocumentSnapshot): Member {
 
 function toInvite(snap: DocumentSnapshot): Invite {
   const d = snap.data() ?? {};
-  return { code: snap.id, tripId: str(d.tripId), active: d.active === true };
+  return {
+    code: snap.id,
+    tripId: str(d.tripId),
+    active: d.active === true,
+    preview:
+      typeof d.tripName === 'string'
+        ? {
+            tripName: d.tripName,
+            tripStartDate: str(d.tripStartDate),
+            tripEndDate: str(d.tripEndDate),
+            tripDestination: str(d.tripDestination),
+            ownerName: str(d.ownerName),
+          }
+        : null,
+  };
 }
 
 // ---------- live reads ----------
@@ -202,11 +217,21 @@ export function createTrip(user: User, input: TripInput): string {
   return tripRef.id;
 }
 
-export function updateTrip(tripId: string, input: TripInput) {
-  run(
-    'save the trip',
-    updateDoc(doc(db, 'trips', tripId), { ...input, updatedAt: serverTimestamp() }),
-  );
+/**
+ * Save trip details. Active invites get their preview refreshed in the same batch, so the join
+ * page never shows an old name or dates.
+ */
+export function updateTrip(
+  tripId: string,
+  input: TripInput,
+  activeInviteCodes: string[] = [],
+  ownerName = '',
+) {
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'trips', tripId), { ...input, updatedAt: serverTimestamp() });
+  const preview = invitePreview(input, ownerName);
+  for (const code of activeInviteCodes) batch.update(doc(db, 'invites', code), { ...preview });
+  run('save the trip', batch.commit());
 }
 
 export function setActiveTrip(uid: string, tripId: string) {
@@ -302,12 +327,13 @@ export function setMemberRole(tripId: string, memberUid: string, role: 'organize
   run('change the role', batch.commit());
 }
 
-export function createInvite(tripId: string, uid: string): string {
+export function createInvite(trip: Trip, uid: string, ownerName: string): string {
   const code = newInviteCode();
   run(
     'create the invite',
     setDoc(doc(db, 'invites', code), {
-      tripId,
+      tripId: trip.id,
+      ...invitePreview(trip, ownerName),
       active: true,
       createdBy: uid,
       createdAt: serverTimestamp(),

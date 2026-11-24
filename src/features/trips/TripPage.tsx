@@ -56,7 +56,9 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
           canEdit={canEdit}
           uid={uid}
         />
-        {canEdit && <InviteSection trip={trip} invites={invites.data} uid={uid} />}
+        {canEdit && (
+          <InviteSection trip={trip} invites={invites.data} members={members.data} uid={uid} />
+        )}
       </div>
     </div>
   );

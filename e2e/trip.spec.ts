@@ -72,6 +72,8 @@ test('an organiser plans a trip and a second adult joins by link @trip @layout',
   const guest = await other.newPage();
   await signIn(guest, `guest-${suffix}`, 'Gita Guest');
   await guest.goto(new URL(link).pathname);
+  await expect(guest.getByTestId('inviter')).toHaveText('Olive Organiser invited you to');
+  await expect(guest.getByTestId('invite-trip-name')).toHaveText(`Ooty trip ${suffix}`);
   await guest.getByRole('button', { name: 'Join the trip' }).click();
   await expect(guest.getByTestId('joined-trip-name')).toHaveText(`Ooty trip ${suffix}`);
   await guest.getByRole('button', { name: /Family B/ }).click();

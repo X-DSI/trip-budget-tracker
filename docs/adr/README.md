@@ -16,3 +16,4 @@ Accepted decisions live here; proposals live in [`proposed/`](proposed/).
 | 2026-11-23 | [Five split modes, chosen per expense, with families as the unit of settlement](2026-11-23-split-modes.md) | Accepted |
 | 2026-11-23 | [Freeze features on 29 Nov and stop deploys during the 4–7 Dec trip](2026-11-23-release-freeze-for-first-trip.md) | Accepted |
 | 2026-11-23 | [Separate dev and prod Firebase projects; previews deploy only to dev](2026-11-23-separate-dev-and-prod-projects.md) | Accepted |
+| 2026-11-24 | [Invites carry a preview of the trip and the owner's name](2026-11-24-invite-preview.md) | Accepted |
