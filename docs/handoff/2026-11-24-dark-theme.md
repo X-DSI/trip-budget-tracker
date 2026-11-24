@@ -1,7 +1,7 @@
 ---
 title: Dark theme (follows the phone, with an override)
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-23-offline-first-pwa.md]
 plan_pr: 12
