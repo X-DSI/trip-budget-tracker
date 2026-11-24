@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { signOutUser } from '../lib/auth';
 import { useAuth } from '../features/auth/AuthProvider';
 import { MyTrips } from '../features/trips/MyTrips';
+import { ThemeSetting } from '../components/ThemeSetting';
 
 export function MorePage() {
   const { user } = useAuth();
@@ -29,6 +30,10 @@ export function MorePage() {
       </div>
 
       <MyTrips />
+
+      <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
+        <ThemeSetting />
+      </div>
 
       <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
         {confirming ? (

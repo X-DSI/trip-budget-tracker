@@ -16,6 +16,7 @@ import { BalancesPage } from './features/balances/BalancesPage';
 import { MoneyLayout } from './features/money/MoneyLayout';
 import { BudgetPage } from './features/money/BudgetPage';
 import { ErrorToasts } from './components/ErrorToasts';
+import { ThemeController } from './components/ThemeSetting';
 
 const router = createBrowserRouter([
   { path: '/signin', element: <SignInPage /> },
@@ -69,6 +70,7 @@ export function App() {
       <RouterProvider router={router} />
       <ReloadPrompt />
       <ErrorToasts />
+      <ThemeController />
     </AuthProvider>
   );
 }
