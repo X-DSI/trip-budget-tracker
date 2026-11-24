@@ -11,6 +11,7 @@ import { ActiveTripProvider } from './features/trips/ActiveTripProvider';
 import { TripPage } from './features/trips/TripPage';
 import { EditTripPage, NewTripPage } from './features/trips/TripFormPage';
 import { JoinPage } from './features/trips/JoinPage';
+import { ExpensesPage } from './features/expenses/ExpensesPage';
 import { ErrorToasts } from './components/ErrorToasts';
 
 const router = createBrowserRouter([
@@ -30,15 +31,7 @@ const router = createBrowserRouter([
       { path: 'trip/edit', element: <EditTripPage /> },
       { path: 'trips/new', element: <NewTripPage /> },
       { path: 'join/:code', element: <JoinPage /> },
-      {
-        path: 'expenses',
-        element: (
-          <ComingSoonPage
-            title="Expenses"
-            body="Log what you spend, even with no signal, and split it the way your group agrees."
-          />
-        ),
-      },
+      { path: 'expenses', element: <ExpensesPage /> },
       {
         path: 'balances',
         element: (
