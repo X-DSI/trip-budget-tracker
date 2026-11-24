@@ -1,11 +1,11 @@
 ---
 title: Dark theme (follows the phone, with an override)
-status: open
-assignee: agent:any
+status: done
+assignee: X-DSI-agent
 base_sha: c3bd444
 adrs: [2026-11-23-offline-first-pwa.md]
 plan_pr: 12
-impl_pr: null
+impl_pr: 16
 review: auto
 ---
 
@@ -45,3 +45,23 @@ Nothing expected.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** 2f32364..091f046 · **PR:** #16 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45419544205
+
+### Verified acceptance criteria
+- [x] Choosing Dark in More adds the `dark` class and a dark page background; System follows the phone — `e2e` job, `e2e/theme.spec.ts`
+- [x] The choice survives a reload and works offline — same
+- [x] Unit: the theme resolver (System/Light/Dark × the phone's setting) — unit job, `src/lib/theme.test.ts`
+- [x] Every screen readable in dark, no white panels left behind. This was manual in the handoff; it's now **automated**: an e2e scan of Home, Trip, Itinerary, Expenses (plus the add sheet), Budget, Balances, More and sign-in finds no light, opaque panel. The scan first proves it detects the white cards in light mode. Screenshots were also reviewed.
+
+### Deviations
+- **One stylesheet instead of `dark:` classes.** `src/dark.css` flips the slate palette's CSS variables and gives white panels, light tints and dark buttons explicit dark colours. This was chosen over `dark:` on hundreds of elements: one place to maintain, new screens are covered automatically, and the scan above guards against misses. It relies on Tailwind compiling colours through `--color-*` variables.
+- The inline no-flash script also sets `color-scheme`, so native date/time pickers and scrollbars go dark.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
