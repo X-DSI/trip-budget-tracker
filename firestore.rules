@@ -127,8 +127,8 @@ service cloud.firestore {
       function validTrip(d) {
         return d.keys().hasOnly([
             'name', 'destination', 'startDate', 'endDate', 'timezone', 'expectedKm', 'kidWeight',
-            'currency', 'ownerUid', 'memberUids', 'organizerUids', 'notes', 'createdAt',
-            'updatedAt'])
+            'currency', 'ownerUid', 'memberUids', 'organizerUids', 'notes', 'importantInfo',
+            'createdAt', 'updatedAt'])
           && d.keys().hasAll(['name', 'startDate', 'endDate', 'ownerUid', 'memberUids',
             'organizerUids'])
           && isRequiredText(d.name, 100)
@@ -140,6 +140,7 @@ service cloud.firestore {
           && d.get('kidWeight', 0.5) >= 0 && d.get('kidWeight', 0.5) <= 1
           && d.get('currency', 'INR') == 'INR'
           && isText(d.get('notes', ''), 2000)
+          && isText(d.get('importantInfo', ''), 4000)
           && d.memberUids is list && d.organizerUids is list
           && d.ownerUid in d.organizerUids
           && d.memberUids.toSet().hasAll(d.organizerUids);

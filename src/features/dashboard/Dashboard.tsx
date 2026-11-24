@@ -15,6 +15,8 @@ import {
   type ItineraryItem,
 } from '../itinerary/model';
 import { ItemCard } from '../itinerary/ItemCard';
+import { BudgetGlance, ImportantInfoCard, QuickAdd, RecentExpenses } from './HomeCards';
+import { isOrganizer } from '../trips/model';
 import { useTripNow } from '../expenses/useTripToday';
 import { Countdown } from './Countdown';
 import { lineForDay, tripPhase, type TripPhase } from './phase';
@@ -74,6 +76,27 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
   const travel = travelSummary(items, trip.expectedKm);
   const me = members.find((m) => m.uid === user?.uid);
   const budget = useBudget(trip.id).data;
+  const expenses = useExpenses(trip.id).data;
+  const canEdit = isOrganizer(trip, user?.uid);
+  const myFamilyId = me?.familyId ?? null;
+  const hasFamilies = families.some((f) => f.active);
+
+  const stats = (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Stat label="Days" value={String(phase.totalDays)} />
+      <Stat label="Families" value={String(people.families)} />
+      <Stat
+        label="People"
+        value={String(people.adults + people.kids)}
+        detail={people.kids ? `${people.adults} adults · ${people.kids} kids` : undefined}
+      />
+      <Stat
+        label="Distance"
+        value={travel.totalKm != null ? `${travel.totalKm.toLocaleString('en-IN')} km` : '—'}
+        detail={travel.cars ? `${travel.cars} car${travel.cars === 1 ? '' : 's'}` : undefined}
+      />
+    </div>
+  );
 
   return (
     <section className="space-y-6" data-testid="dashboard" data-phase={phase.phase}>
@@ -119,20 +142,7 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
         </Hero>
       )}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Days" value={String(phase.totalDays)} />
-        <Stat label="Families" value={String(people.families)} />
-        <Stat
-          label="People"
-          value={String(people.adults + people.kids)}
-          detail={people.kids ? `${people.adults} adults · ${people.kids} kids` : undefined}
-        />
-        <Stat
-          label="Distance"
-          value={travel.totalKm != null ? `${travel.totalKm.toLocaleString('en-IN')} km` : '—'}
-          detail={travel.cars ? `${travel.cars} car${travel.cars === 1 ? '' : 's'}` : undefined}
-        />
-      </div>
+      {phase.phase !== 'during' && stats}
 
       {phase.phase === 'before' && (
         <Checklist
@@ -164,18 +174,37 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
         />
       )}
 
+      {hasFamilies && phase.phase !== 'after' && <QuickAdd />}
+
+      <ImportantInfoCard trip={trip} canEdit={canEdit} />
+
       {phase.phase === 'during' && (
         <div className="grid gap-4 lg:grid-cols-2">
-          <TodaySpend trip={trip} today={phase.today ?? ''} myFamilyId={me?.familyId ?? null} />
-          <FamilyBalance trip={trip} myFamilyId={me?.familyId ?? null} />
+          <TodaySpend trip={trip} today={phase.today ?? ''} myFamilyId={myFamilyId} />
+          <FamilyBalance trip={trip} myFamilyId={myFamilyId} />
         </div>
       )}
 
       {phase.phase === 'after' && (
-        <div className="grid gap-4 lg:grid-cols-3">
-          <FamilyBalance trip={trip} myFamilyId={me?.familyId ?? null} />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <FamilyBalance trip={trip} myFamilyId={myFamilyId} />
         </div>
       )}
+
+      {(budget.length > 0 || expenses.some((e) => !e.deleted)) && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <BudgetGlance
+            trip={trip}
+            lines={budget}
+            expenses={expenses}
+            families={families}
+            myFamilyId={myFamilyId}
+          />
+          <RecentExpenses expenses={expenses} families={families} />
+        </div>
+      )}
+
+      {phase.phase === 'during' && stats}
     </section>
   );
 }

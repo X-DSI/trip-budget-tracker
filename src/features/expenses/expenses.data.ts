@@ -17,7 +17,7 @@ import { categoryOf, type ExpenseInput, type TripExpense } from './model';
 const MODES: SplitMode[] = ['equal_family', 'per_head', 'itemized', 'custom', 'personal'];
 
 function toExpense(snap: QueryDocumentSnapshot): TripExpense {
-  const d = snap.data();
+  const d = snap.data({ serverTimestamps: 'estimate' });
   const items = Array.isArray(d.items)
     ? (d.items as unknown[]).flatMap((raw) => {
         const i = raw as { name?: unknown; amountPaise?: unknown; familyId?: unknown };
@@ -46,6 +46,10 @@ function toExpense(snap: QueryDocumentSnapshot): TripExpense {
     createdBy: String(d.createdBy ?? ''),
     updatedBy: String(d.updatedBy ?? d.createdBy ?? ''),
     pending: snap.metadata.hasPendingWrites,
+    createdAtMs:
+      d.createdAt && typeof d.createdAt.toMillis === 'function'
+        ? d.createdAt.toMillis()
+        : undefined,
   };
 }
 

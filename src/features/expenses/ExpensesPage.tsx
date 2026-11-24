@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import { balances, formatINR, splitExpense, type Shares } from '../../domain';
 import { useAuth } from '../auth/AuthProvider';
 import { useActiveTrip } from '../trips/ActiveTripProvider';
@@ -34,11 +34,20 @@ function safeShares(
 }
 
 function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
-  const families = useFamilies(trip.id).data;
-  const members = useMembers(trip.id).data;
+  const familiesState = useFamilies(trip.id);
+  const families = familiesState.data;
+  const membersState = useMembers(trip.id);
+  const members = membersState.data;
   const expensesState = useExpenses(trip.id);
   const today = useTripToday(trip.timezone);
-  const [open, setOpen] = useState<TripExpense | 'new' | null>(null);
+  const [params, setParams] = useSearchParams();
+  const [open, setOpen] = useState<TripExpense | 'new' | null>(() =>
+    params.get('add') === '1' ? 'new' : null,
+  );
+  // Drop ?add=1 once used, so reloading or going back doesn't reopen the sheet.
+  useEffect(() => {
+    if (params.has('add')) setParams({}, { replace: true });
+  }, [params, setParams]);
 
   const organizer = isOrganizer(trip, uid);
   const myFamilyId = members.find((m) => m.uid === uid)?.familyId ?? null;
@@ -188,7 +197,7 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
         }
         onClose={() => setOpen(null)}
       >
-        {open !== null && (
+        {open !== null && !familiesState.loading && !membersState.loading && (
           <ExpenseSheetBody
             key={open === 'new' ? 'new' : open.id}
             trip={trip}
