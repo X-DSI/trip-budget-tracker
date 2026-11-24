@@ -86,7 +86,7 @@ invitation.
 | `joinedVia` | string | Invite code used |
 | `joinedAt` | timestamp | |
 
-### `trips/{tripId}/expenses/{expenseId}` — built by a later handoff
+### `trips/{tripId}/expenses/{expenseId}`
 
 | Field | Type | Notes |
 |---|---|---|
@@ -99,13 +99,36 @@ invitation.
 | `items` | `{ name, amountPaise, familyId \| "shared" }[]` | `itemized` only |
 | `extrasPaise` | int | `itemized` only: tax + service + tip, spread proportionally |
 | `customShares` | `{ [familyId]: int }` | `custom` only; must add up to `amountPaise` |
+| `note` | string | Optional, ≤ 500 characters |
 | `deleted` | bool | Soft delete |
+| `createdBy`, `updatedBy`, `createdAt`, `updatedAt` | | `createdBy` never changes |
+
+### `trips/{tripId}/budget/{lineId}`
+
+| Field | Type | Notes |
+|---|---|---|
+| `category`, `title` | string | Same categories as expenses |
+| `amountPaise` | int | > 0 |
+| `splitMode` | `equal_family` \| `per_head` \| `custom` \| `personal` | Not `itemized` |
+| `participants` | string[] | As for expenses |
+| `customShares` | `{ [familyId]: int }` | `custom` only |
+| `familyId` | string \| null | `personal` only: whose plan this is |
+| `order` | int | Display order |
 | `createdBy`, `updatedBy`, `createdAt`, `updatedAt` | | |
 
-### `trips/{tripId}/budget/{lineId}` and `trips/{tripId}/settlements/{id}`
+Budget lines are deleted outright (no history needed for a plan).
 
-Reserved for a later handoff. Budget lines: `category`, `title`, `amountPaise`, `splitMode`.
-Settlements: `fromFamilyId`, `toFamilyId`, `amountPaise`, `date`, `method` (`upi` \| `cash` \| `other`).
+### `trips/{tripId}/settlements/{settlementId}`
+
+| Field | Type | Notes |
+|---|---|---|
+| `fromFamilyId`, `toFamilyId` | string | Different families |
+| `amountPaise` | int | > 0 |
+| `date` | `YYYY-MM-DD` | |
+| `method` | `upi` \| `cash` \| `other` | |
+| `note` | string | Optional |
+| `deleted` | bool | Soft delete |
+| `createdBy`, `updatedBy`, `createdAt`, `updatedAt` | | |
 
 ## Access rules
 
@@ -113,8 +136,8 @@ Settlements: `fromFamilyId`, `toFamilyId`, `amountPaise`, `date`, `method` (`upi
 |---|---|
 | Signed-in user | Create a trip (becoming its owner); read/write their own `users` doc; `get` an invite by code |
 | Holder of an active invite | Add their own uid to `memberUids` and create their own `members/{uid}` doc with role `member` |
-| Member | Read the trip and all its subcollections; set their own `familyId`; create a family when joining; create and edit expenses, settlements |
-| Organiser | Everything a member can, plus edit the trip, legs, families, budget, invites and roles |
+| Member | Read the trip and all its subcollections; set their own `familyId`; add a family; add expenses and edit or delete the ones they added; record or delete a settlement their own family paid or received |
+| Organiser | Everything a member can, plus edit the trip, legs, families, budget, invites and roles, and edit or delete anyone's expense or settlement |
 | Owner | Everything an organiser can; cannot be removed by others |
 
 Nobody can change their own `role`, add someone else to `memberUids`, or list another trip's
