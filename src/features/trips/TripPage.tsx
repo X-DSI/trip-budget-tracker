@@ -1,9 +1,10 @@
 import { Link } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { useActiveTrip } from './ActiveTripProvider';
-import { useFamilies, useInvites, useLegs, useMembers } from './trips.data';
+import { useFamilies, useInvites, useMembers } from './trips.data';
 import { isOrganizer, type Trip } from './model';
-import { LegsSection } from './LegsSection';
+import { ComingUpSection } from '../itinerary/ComingUpSection';
+import { useItinerary } from '../itinerary/itinerary.data';
 import { FamiliesSection } from './FamiliesSection';
 import { InviteSection, PeopleSection } from './PeopleSection';
 import { NoTripCard } from './NoTripCard';
@@ -20,7 +21,7 @@ export function TripPage() {
 
 function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
   const canEdit = isOrganizer(trip, uid);
-  const legs = useLegs(trip.id);
+  const itinerary = useItinerary(trip.id);
   const families = useFamilies(trip.id);
   const members = useMembers(trip.id);
   const invites = useInvites(trip.id, canEdit);
@@ -42,7 +43,7 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
       )}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <LegsSection trip={trip} legs={legs.data} canEdit={canEdit} />
+        <ComingUpSection trip={trip} items={itinerary.data} canEdit={canEdit} />
         <FamiliesSection
           trip={trip}
           families={families.data}

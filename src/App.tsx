@@ -11,6 +11,7 @@ import { TripPage } from './features/trips/TripPage';
 import { EditTripPage, NewTripPage } from './features/trips/TripFormPage';
 import { JoinPage } from './features/trips/JoinPage';
 import { ExpensesPage } from './features/expenses/ExpensesPage';
+import { ItineraryPage } from './features/itinerary/ItineraryPage';
 import { BalancesPage } from './features/balances/BalancesPage';
 import { MoneyLayout } from './features/money/MoneyLayout';
 import { BudgetPage } from './features/money/BudgetPage';
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'trip', element: <TripPage /> },
       { path: 'trip/edit', element: <EditTripPage /> },
+      { path: 'itinerary', element: <ItineraryPage /> },
       { path: 'trips/new', element: <NewTripPage /> },
       { path: 'join/:code', element: <JoinPage /> },
       { path: 'expenses', element: <ExpensesPage /> },

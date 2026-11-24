@@ -10,3 +10,14 @@ export function useTripToday(timeZone: string): string {
   }, []);
   return zonedParts(now, timeZone || 'Asia/Kolkata').date;
 }
+
+/** Today's date and the time now (HH:MM) in the trip's timezone, refreshed every minute. */
+export function useTripNow(timeZone: string): { today: string; time: string } {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const parts = zonedParts(now, timeZone || 'Asia/Kolkata');
+  return { today: parts.date, time: parts.time };
+}

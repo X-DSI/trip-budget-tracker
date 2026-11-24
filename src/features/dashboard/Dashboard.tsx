@@ -4,8 +4,18 @@ import { useAuth } from '../auth/AuthProvider';
 import { useUserProfile } from '../profile/profile.data';
 import { useActiveTrip } from '../trips/ActiveTripProvider';
 import { NoTripCard } from '../trips/NoTripCard';
-import { useFamilies, useLegs, useMembers } from '../trips/trips.data';
-import { headcount, LEG_MODES, sortLegs, travelSummary, type Leg, type Trip } from '../trips/model';
+import { useFamilies, useMembers } from '../trips/trips.data';
+import { headcount, type Trip } from '../trips/model';
+import { useItinerary } from '../itinerary/itinerary.data';
+import {
+  dayLabel,
+  nextUpId,
+  sortItems,
+  travelSummary,
+  type ItineraryItem,
+} from '../itinerary/model';
+import { ItemCard } from '../itinerary/ItemCard';
+import { useTripNow } from '../expenses/useTripToday';
 import { Countdown } from './Countdown';
 import { lineForDay, tripPhase, type TripPhase } from './phase';
 import { firstName } from '../../lib/names';
@@ -57,11 +67,11 @@ export function Dashboard() {
 
 function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase: TripPhase }) {
   const { user } = useAuth();
-  const legs = sortLegs(useLegs(trip.id).data);
+  const items = sortItems(useItinerary(trip.id).data);
   const families = useFamilies(trip.id).data;
   const members = useMembers(trip.id).data;
   const people = headcount(families);
-  const travel = travelSummary(legs, trip.expectedKm);
+  const travel = travelSummary(items, trip.expectedKm);
   const me = members.find((m) => m.uid === user?.uid);
   const budget = useBudget(trip.id).data;
 
@@ -135,9 +145,27 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
         />
       )}
 
+      {phase.phase === 'before' && (
+        <DayPlan
+          trip={trip}
+          title="Day 1 plan"
+          items={items.filter((i) => i.day === trip.startDate)}
+          empty="Day 1 isn't planned yet."
+        />
+      )}
+
       {phase.phase === 'during' && (
-        <div className="grid gap-4 lg:grid-cols-3">
-          <TodayLegs legs={legs.filter((l) => l.date === phase.today)} />
+        <DayPlan
+          trip={trip}
+          title="Today's plan"
+          items={items.filter((i) => i.day === phase.today)}
+          empty="Nothing planned today. Enjoy the day."
+          highlightNext
+        />
+      )}
+
+      {phase.phase === 'during' && (
+        <div className="grid gap-4 lg:grid-cols-2">
           <TodaySpend trip={trip} today={phase.today ?? ''} myFamilyId={me?.familyId ?? null} />
           <FamilyBalance trip={trip} myFamilyId={me?.familyId ?? null} />
         </div>
@@ -262,33 +290,51 @@ function Checklist({
   );
 }
 
-function TodayLegs({ legs }: { legs: Leg[] }) {
+/** A day's itinerary: today's plan during the trip, Day 1 before it. */
+function DayPlan({
+  trip,
+  title,
+  items,
+  empty,
+  highlightNext,
+}: {
+  trip: Trip;
+  title: string;
+  items: ItineraryItem[];
+  empty: string;
+  highlightNext?: boolean;
+}) {
+  const now = useTripNow(trip.timezone);
+  const nextId = highlightNext ? nextUpId(items, now) : null;
   return (
-    <Card>
-      <h3 className="text-sm font-medium text-slate-500">On the road today</h3>
-      {legs.length === 0 ? (
-        <p className="mt-2 text-slate-600">No travel planned today. Enjoy the day.</p>
+    <section data-testid="day-plan">
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h3 className="font-semibold text-slate-900">
+          {title}
+          {items[0] && (
+            <span className="ml-2 text-sm font-normal text-slate-500">
+              {dayLabel(items[0].day, trip.startDate)}
+            </span>
+          )}
+        </h3>
+        <Link to="/itinerary" className="text-sm font-medium text-teal-700">
+          Full itinerary
+        </Link>
+      </div>
+      {items.length === 0 ? (
+        <Card>
+          <p className="text-slate-600">{empty}</p>
+        </Card>
       ) : (
-        <ul className="mt-2 space-y-2">
-          {legs.map((leg) => (
-            <li key={leg.id}>
-              <p className="font-medium text-slate-900">
-                {[leg.from, leg.to].filter(Boolean).join(' → ')}
-              </p>
-              <p className="text-sm text-slate-600">
-                {[
-                  LEG_MODES.find((m) => m.value === leg.mode)?.label,
-                  leg.km != null && `${leg.km.toLocaleString('en-IN')} km`,
-                  leg.notes,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
+        <ol className="space-y-2">
+          {items.map((item) => (
+            <li key={item.id}>
+              <ItemCard item={item} highlight={item.id === nextId} />
             </li>
           ))}
-        </ul>
+        </ol>
       )}
-    </Card>
+    </section>
   );
 }
 

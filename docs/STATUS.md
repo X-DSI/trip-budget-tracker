@@ -24,7 +24,7 @@
 | 4 | [Expenses — add, edit and split, offline](handoff/2026-11-24-expenses.md) | trip planning | X-DSI-agent · **done** (#9) | human | Thu 26 Nov |
 | 5 | [Budget vs actual, balances and UPI settle-up](handoff/2026-11-24-budget-and-balances.md) | expenses | Claude Code (local) · **done** (#10) | human | Sat 28 Nov |
 | 6 | [Money tab and "Your family" card](handoff/2026-11-24-money-tab-and-family-card.md) | — | X-DSI-agent · **done** (#13) | auto | Wed 25 Nov |
-| 7 | [Day-by-day itinerary](handoff/2026-11-24-itinerary.md) | — | agent:any | human | Thu 26 Nov |
+| 7 | [Day-by-day itinerary](handoff/2026-11-24-itinerary.md) | — | X-DSI-agent · **done** (#14) | human | Thu 26 Nov |
 | 8 | [Dashboard additions](handoff/2026-11-24-dashboard-additions.md) | 6, 7 | agent:any | human | Fri 27 Nov |
 | 9 | [Dark theme](handoff/2026-11-24-dark-theme.md) | 6, 7, 8 | agent:any | auto | Sat 28 Nov |
 

@@ -3,7 +3,6 @@
 import type { Family } from '../../domain';
 
 export type Role = 'owner' | 'organizer' | 'member';
-export type LegMode = 'car' | 'bus' | 'train' | 'flight' | 'other';
 
 export interface Trip {
   id: string;
@@ -19,18 +18,6 @@ export interface Trip {
   memberUids: string[];
   organizerUids: string[];
   notes: string;
-}
-
-export interface Leg {
-  id: string;
-  mode: LegMode;
-  from: string;
-  to: string;
-  date: string | null;
-  vehicles: number;
-  km: number | null;
-  notes: string;
-  order: number;
 }
 
 export interface TripFamily extends Family {
@@ -77,14 +64,6 @@ export function invitePreview(
   };
 }
 
-export const LEG_MODES: { value: LegMode; label: string; vehicleLabel: string }[] = [
-  { value: 'car', label: 'Car', vehicleLabel: 'Cars' },
-  { value: 'bus', label: 'Bus', vehicleLabel: 'Buses' },
-  { value: 'train', label: 'Train', vehicleLabel: 'Bookings' },
-  { value: 'flight', label: 'Flight', vehicleLabel: 'Bookings' },
-  { value: 'other', label: 'Other', vehicleLabel: 'Vehicles' },
-];
-
 export const FAMILY_COLORS = [
   'teal',
   'amber',
@@ -123,24 +102,6 @@ export function isOrganizer(trip: Pick<Trip, 'organizerUids'> | null, uid: strin
   return !!trip && !!uid && trip.organizerUids.includes(uid);
 }
 
-export interface TravelSummary {
-  /** Cars on the road: the most cars any single car leg uses (the same cars drive every leg). */
-  cars: number;
-  /** Total km: the legs' km when any leg has it, otherwise the trip's estimate. */
-  totalKm: number | null;
-  modes: LegMode[];
-}
-
-export function travelSummary(legs: Leg[], expectedKm: number | null): TravelSummary {
-  const carLegs = legs.filter((l) => l.mode === 'car');
-  const legKm = legs.filter((l) => l.km != null);
-  return {
-    cars: carLegs.reduce((max, l) => Math.max(max, l.vehicles), 0),
-    totalKm: legKm.length > 0 ? legKm.reduce((sum, l) => sum + (l.km ?? 0), 0) : expectedKm,
-    modes: [...new Set(legs.map((l) => l.mode))],
-  };
-}
-
 export interface Headcount {
   families: number;
   adults: number;
@@ -154,10 +115,6 @@ export function headcount(families: Pick<TripFamily, 'adults' | 'kids' | 'active
     adults: active.reduce((s, f) => s + f.adults, 0),
     kids: active.reduce((s, f) => s + f.kids, 0),
   };
-}
-
-export function sortLegs(legs: Leg[]): Leg[] {
-  return [...legs].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 }
 
 /** Unguessable, URL-safe invite code: 16 random bytes → 22 base64url characters (128 bits). */

@@ -8,39 +8,8 @@ import {
   nextFamilyColor,
   parseInviteInput,
   pickActiveTrip,
-  travelSummary,
-  type Leg,
   type Trip,
 } from './model';
-
-const leg = (over: Partial<Leg>): Leg => ({
-  id: 'l',
-  mode: 'car',
-  from: '',
-  to: '',
-  date: null,
-  vehicles: 1,
-  km: null,
-  notes: '',
-  order: 0,
-  ...over,
-});
-
-describe('travelSummary', () => {
-  it('counts the cars on the road, not cars × legs', () => {
-    const legs = [
-      leg({ id: 'a', vehicles: 3, km: 300 }),
-      leg({ id: 'b', vehicles: 3, km: 120 }),
-      leg({ id: 'c', mode: 'train', vehicles: 1 }),
-    ];
-    expect(travelSummary(legs, 900)).toEqual({ cars: 3, totalKm: 420, modes: ['car', 'train'] });
-  });
-
-  it('falls back to the trip estimate when no leg has a distance', () => {
-    expect(travelSummary([leg({})], 850).totalKm).toBe(850);
-    expect(travelSummary([], null)).toEqual({ cars: 0, totalKm: null, modes: [] });
-  });
-});
 
 describe('families', () => {
   it('counts heads of active families only', () => {

@@ -22,6 +22,7 @@ export function titleForPath(pathname: string): string {
   );
   if (match) return match.label;
   if (pathname === '/trips/new') return 'New trip';
+  if (pathname === '/itinerary') return 'Itinerary';
   if (pathname.startsWith('/join/')) return 'Join a trip';
   return 'Trip Budget';
 }

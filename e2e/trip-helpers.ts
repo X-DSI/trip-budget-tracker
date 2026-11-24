@@ -13,16 +13,33 @@ export async function createTrip(page: Page, name: string) {
   await expect(page.getByTestId('trip-name')).toHaveText(name);
 }
 
-export async function addLeg(page: Page, mode: string, from: string, to: string, km: string) {
-  await page.getByRole('button', { name: 'Add leg' }).first().click();
+export interface Plan {
+  kind: 'Travel' | 'Sightseeing' | 'Food' | 'Stay' | 'Activity' | 'Other';
+  title: string;
+  /** 0 = day 1 of the trip. */
+  day?: number;
+  time?: string;
+  place?: string;
+  /** Travel only. */
+  mode?: 'Car' | 'Bus' | 'Train' | 'Flight';
+  km?: string;
+}
+
+/** Add an itinerary item from the Itinerary page (organisers only). */
+export async function addPlan(page: Page, plan: Plan) {
+  if (!page.url().endsWith('/itinerary')) await page.goto('/itinerary');
+  await page.getByRole('button', { name: 'Add to itinerary' }).first().click();
   const sheet = page.getByRole('dialog');
-  await sheet.getByText(mode, { exact: false }).first().click();
-  await sheet.getByLabel('From').fill(from);
-  await sheet.getByLabel('To', { exact: true }).fill(to);
-  await sheet.getByLabel('Distance (km)').fill(km);
-  await sheet.getByRole('button', { name: 'Add leg' }).click();
+  await sheet.locator('label', { hasText: plan.kind }).first().click();
+  await sheet.getByLabel('Title').fill(plan.title);
+  await sheet.getByLabel('Day').selectOption({ index: plan.day ?? 0 });
+  if (plan.time) await sheet.getByLabel('Time').fill(plan.time);
+  if (plan.place) await sheet.getByLabel('Place').fill(plan.place);
+  if (plan.mode) await sheet.locator('label', { hasText: plan.mode }).first().click();
+  if (plan.km) await sheet.getByLabel('Distance (km)').fill(plan.km);
+  await sheet.getByRole('button', { name: 'Add to itinerary' }).click();
   await expect(sheet).toBeHidden();
-  await expect(page.getByText(`${from} → ${to}`)).toBeVisible();
+  await expect(page.getByTestId('itinerary-item').filter({ hasText: plan.title })).toBeVisible();
 }
 
 export async function addFamily(page: Page, name: string, adults: number) {
