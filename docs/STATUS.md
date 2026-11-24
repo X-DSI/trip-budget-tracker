@@ -26,13 +26,13 @@
 | 6 | [Money tab and "Your family" card](handoff/2026-11-24-money-tab-and-family-card.md) | — | X-DSI-agent · **done** (#13) | auto | Wed 25 Nov |
 | 7 | [Day-by-day itinerary](handoff/2026-11-24-itinerary.md) | — | X-DSI-agent · **done** (#14) | human | Thu 26 Nov |
 | 8 | [Dashboard additions](handoff/2026-11-24-dashboard-additions.md) | 6, 7 | X-DSI-agent · **done** (#15) | human | Fri 27 Nov |
-| 9 | [Dark theme](handoff/2026-11-24-dark-theme.md) | 6, 7, 8 | agent:any | auto | Sat 28 Nov |
+| 9 | [Dark theme](handoff/2026-11-24-dark-theme.md) | 6, 7, 8 | X-DSI-agent · **done** (#16) | auto | Sat 28 Nov |
 
 ## Next
 
 The first five handoffs are done and live. Remaining before the trip:
 
-- [ ] Finish handoffs 6–9 before the freeze.
+- [x] Finish handoffs 6–9 before the freeze (PRs #13–#16).
 - [ ] Run the [dry run](dry-run.md) on the dev project with the families (Mon 30 Nov).
 - [ ] Manual checks on real phones: WhatsApp share, UPI app opens prefilled, add an expense in
       under 10 s, Google sign-in on the live site, install on iPhone and Android.
