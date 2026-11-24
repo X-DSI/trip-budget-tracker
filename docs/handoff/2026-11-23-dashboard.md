@@ -1,7 +1,7 @@
 ---
 title: Dashboard — countdown before the trip, welcome during it, summary after
-status: open
-assignee: agent:any
+status: in-progress
+assignee: X-DSI-agent
 base_sha: 8057ca1
 adrs: [2026-11-23-multi-trip-data-model.md, 2026-11-23-offline-first-pwa.md]
 plan_pr: 1
