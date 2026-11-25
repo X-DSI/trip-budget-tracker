@@ -2,16 +2,26 @@ import { AUTHOR_URL, REPO_URL, build, channel, commitUrl, versionLabel } from '.
 
 const link = 'font-medium text-teal-700 underline-offset-2 hover:underline';
 
-/** Version and credits, at the bottom of the More page. */
-export function AppFooter() {
+/**
+ * Version and credits. `page` sits centred under every screen's content (phones and the sign-in
+ * page); `sidebar` sits at the bottom of the desktop navigation.
+ */
+export function AppFooter({
+  layout = 'page',
+  className = '',
+}: {
+  layout?: 'page' | 'sidebar';
+  className?: string;
+}) {
   const site = channel(build.projectId);
   const commit = commitUrl(build);
+  const align = layout === 'page' ? 'justify-center text-center' : 'justify-start text-left';
   return (
     <footer
-      className="space-y-1 pt-2 pb-4 text-center text-xs text-slate-500"
-      data-testid="app-footer"
+      className={`space-y-1 text-xs text-slate-500 ${layout === 'page' ? 'pt-6 pb-2' : 'px-6 py-4'} ${className}`}
+      data-testid={layout === 'page' ? 'app-footer' : 'sidebar-footer'}
     >
-      <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+      <p className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${align}`}>
         {commit ? (
           <a
             href={commit}
@@ -36,7 +46,7 @@ export function AppFooter() {
           </span>
         )}
       </p>
-      <p>
+      <p className={align}>
         <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className={link}>
           Built
         </a>{' '}

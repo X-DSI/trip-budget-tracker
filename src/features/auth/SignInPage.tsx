@@ -4,6 +4,7 @@ import { authErrorMessage, signInWithGoogle } from '../../lib/auth';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import { useAuth } from './AuthProvider';
 import { Splash } from '../../components/Splash';
+import { AppFooter } from '../../components/AppFooter';
 import { AppLogo } from '../../components/Icons';
 import { safeNext } from './safeNext';
 
@@ -62,6 +63,7 @@ export function SignInPage() {
           Tip: sign in once on Wi-Fi before the trip, so the app is ready with no signal.
         </p>
       </div>
+      <AppFooter />
     </main>
   );
 }
