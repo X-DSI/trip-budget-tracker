@@ -53,3 +53,56 @@ test('the dashboard counts down, welcomes you during the trip, and wraps up afte
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'See balances' })).toBeVisible();
 });
+
+test('the Home stats and Get ready links open the right place @dashboard', async ({
+  page,
+}, testInfo) => {
+  const suffix = `${testInfo.project.name}-${testInfo.retry}`;
+  await signIn(page, `dash-links-${suffix}`, 'Dev Links');
+  await page.goto('/trips/new');
+  await page.getByLabel('Trip name').fill('Link check');
+  await page.getByLabel('Starts').fill(istDate(10));
+  await page.getByLabel('Ends').fill(istDate(12));
+  await page.getByRole('button', { name: 'Create trip' }).click();
+  await expect(page).toHaveURL('/trip');
+  // Let the new trip reach the server before any full page load (a reload can drop unsent writes).
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
+
+  // Go Home through the app, not page.goto, so each step is a normal in-app navigation.
+  const home = async () => {
+    await page.getByRole('link', { name: 'Home' }).first().click();
+    await expect(page.getByTestId('dashboard')).toHaveAttribute('data-phase', 'before');
+  };
+
+  await home();
+  await page.getByTestId('stat-days').click();
+  await expect(page).toHaveURL('/itinerary');
+
+  await home();
+  await page.getByTestId('stat-families').click();
+  await expect(page).toHaveURL('/trip#families');
+  await expect(page.locator('#families')).toBeInViewport();
+
+  await home();
+  await page.getByTestId('stat-people').click();
+  await expect(page).toHaveURL('/trip#people');
+  await expect(page.locator('#people')).toBeInViewport();
+
+  await home();
+  await page.getByTestId('stat-distance').click();
+  await expect(page).toHaveURL('/itinerary');
+
+  const checklist = page.getByTestId('checklist');
+  await home();
+  await checklist.getByRole('link', { name: 'Add the families first' }).click();
+  await expect(page).toHaveURL('/trip#families');
+
+  await home();
+  await checklist.getByRole('link', { name: 'Choose it on the Trip tab' }).click();
+  await expect(page).toHaveURL('/trip#your-family');
+  await expect(page.locator('#your-family')).toBeInViewport();
+
+  await home();
+  await checklist.getByRole('link', { name: /Money → Budget/ }).click();
+  await expect(page).toHaveURL('/money/budget');
+});

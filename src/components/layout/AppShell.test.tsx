@@ -12,8 +12,8 @@ describe('titleForPath', () => {
     expect(titleForPath('/')).toBe('Home');
     expect(titleForPath('/trip')).toBe('Trip');
     expect(titleForPath('/trip/edit')).toBe('Trip');
-    expect(titleForPath('/tripping')).toBe('Trip Budget');
-    expect(titleForPath('/nowhere')).toBe('Trip Budget');
+    expect(titleForPath('/tripping')).toBe('Trip Planner');
+    expect(titleForPath('/nowhere')).toBe('Trip Planner');
   });
 });
 

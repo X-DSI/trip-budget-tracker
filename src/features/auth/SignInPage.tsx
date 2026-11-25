@@ -33,7 +33,7 @@ export function SignInPage() {
     <main className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-teal-50 to-slate-50 px-6">
       <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
         <AppLogo className="mx-auto h-16 w-16" />
-        <h1 className="mt-4 text-2xl font-semibold text-slate-900">Trip Budget</h1>
+        <h1 className="mt-4 text-2xl font-semibold text-slate-900">Trip Planner</h1>
         <p className="mt-2 text-slate-600">
           Plan the trip together, log expenses on the road, and split them fairly between families.
         </p>

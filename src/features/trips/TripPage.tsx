@@ -10,6 +10,7 @@ import { InviteSection, PeopleSection } from './PeopleSection';
 import { NoTripCard } from './NoTripCard';
 import { formatDateRange, tripLength } from '../../lib/dates';
 import { YourFamilyCard } from './YourFamilyCard';
+import { useScrollToHash } from '../../lib/useScrollToHash';
 
 export function TripPage() {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ function TripDetails({ trip, uid }: { trip: Trip; uid: string }) {
   const invites = useInvites(trip.id, canEdit);
   const me = members.data.find((m) => m.uid === uid);
   const needsFamily = !members.loading && me && !me.familyId;
+  useScrollToHash();
 
   return (
     <div className="space-y-8">

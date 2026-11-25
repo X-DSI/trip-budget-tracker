@@ -1,5 +1,5 @@
 // Small inline icon set (24×24, stroke-based) so the app shell needs no icon font or network.
-import type { SVGProps } from 'react';
+import { useId, type SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement>;
 
@@ -80,28 +80,42 @@ export const ShareIcon = (p: IconProps) => (
   </Icon>
 );
 
+/** The app logo. Same shapes as docs/brand/logo.svg (the master); change that first. */
 export function AppLogo(props: IconProps) {
+  const id = useId();
+  const sky = `tp-sky-${id}`;
+  const clip = `tp-clip-${id}`;
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true" {...props}>
-      <rect width="64" height="64" rx="16" fill="#0f766e" />
-      <path
-        d="M13 51c8-3 13-9 19-9s11 6 19 9"
-        stroke="#99f6e4"
-        strokeWidth="3"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <text
-        x="32"
-        y="30"
-        textAnchor="middle"
-        fontSize="22"
-        fontWeight="700"
-        fill="#ffffff"
-        fontFamily="system-ui, sans-serif"
-      >
-        ₹
-      </text>
+      <defs>
+        <linearGradient id={sky} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#0f766e" />
+          <stop offset=".55" stopColor="#f59e0b" />
+          <stop offset="1" stopColor="#fb923c" />
+        </linearGradient>
+        <clipPath id={clip}>
+          <rect width="64" height="64" rx="14" />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clip})`}>
+        <rect width="64" height="64" fill={`url(#${sky})`} />
+        <path
+          d="M32 40L-7.4 33.1M32 40L-2.6 20.0M32 40L6.3 9.4M32 40L18.3 2.4M32 40L32.0 0.0M32 40L45.7 2.4M32 40L57.7 9.4M32 40L66.6 20.0M32 40L71.4 33.1"
+          stroke="#fde68a"
+          strokeOpacity=".35"
+          strokeWidth="5"
+        />
+        <circle cx="32" cy="40" r="15" fill="#fef3c7" />
+        <path
+          d="M36.6 30.2c-.9-1.5-2.6-2.3-4.6-2.3-2.7 0-4.7 1.4-4.7 3.6 0 4.9 9.6 2.9 9.6 8 0 2.2-2.1 3.7-4.9 3.7-2.2 0-4-.9-4.9-2.4M32 27v19"
+          stroke="#b45309"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <path d="M-10 64L16 36L42 64Z" fill="#134e4a" />
+        <path d="M22 64L48 33L74 64Z" fill="#0f3d3a" />
+      </g>
     </svg>
   );
 }

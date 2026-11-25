@@ -13,8 +13,8 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Trip Budget',
-        short_name: 'Trip Budget',
+        name: 'Trip Planner',
+        short_name: 'Trip Planner',
         description:
           'Plan a trip with other families, track expenses offline and split them fairly.',
         lang: 'en-IN',

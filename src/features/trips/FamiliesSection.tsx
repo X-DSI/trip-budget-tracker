@@ -40,7 +40,7 @@ export function FamiliesSection({
   const visible = families.filter((f) => f.active || canEdit);
 
   return (
-    <section>
+    <section id="families" className="scroll-mt-20">
       <SectionHeader
         title="Families"
         subtitle={`${count.families} families · ${count.adults} adults${count.kids ? ` · ${count.kids} kids` : ''}`}

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="tp-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset=".55" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <clipPath id="tp-clip"><rect width="64" height="64" rx="14"/></clipPath>
+  </defs>
+  <g clip-path="url(#tp-clip)">
+    <rect width="64" height="64" fill="url(#tp-sky)"/>
+    <path d="M32 40L-7.4 33.1M32 40L-2.6 20.0M32 40L6.3 9.4M32 40L18.3 2.4M32 40L32.0 0.0M32 40L45.7 2.4M32 40L57.7 9.4M32 40L66.6 20.0M32 40L71.4 33.1" stroke="#fde68a" stroke-opacity=".35" stroke-width="5"/>
+    <circle cx="32" cy="40" r="15" fill="#fef3c7"/>
+    <path d="M36.6 30.2c-.9-1.5-2.6-2.3-4.6-2.3-2.7 0-4.7 1.4-4.7 3.6 0 4.9 9.6 2.9 9.6 8 0 2.2-2.1 3.7-4.9 3.7-2.2 0-4-.9-4.9-2.4M32 27v19" stroke="#b45309" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <path d="M-10 64L16 36L42 64Z" fill="#134e4a"/>
+    <path d="M22 64L48 33L74 64Z" fill="#0f3d3a"/>
+  </g>
+</svg>
