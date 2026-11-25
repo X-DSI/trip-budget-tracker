@@ -1,11 +1,11 @@
 ---
 title: Expense spreadsheet, who-changed-what, and where the money went
-status: in-progress
+status: done
 assignee: X-DSI-agent
 base_sha: 12a32c9
 adrs: [2026-11-23-offline-first-pwa.md]
 plan_pr: 18
-impl_pr: null
+impl_pr: 19
 review: auto
 ---
 
@@ -58,3 +58,28 @@ Anything that needs a rules or data-model change.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** e4200fe..0453fc7 · **PR:** #19 · **CI run:** https://github.com/X-DSI/trip-budget-tracker/actions/runs/45537606533
+
+### Verified acceptance criteria
+- [x] One CSV row per non-deleted expense; per-family shares add up to the amount — unit job, `src/features/expenses/report.test.ts`
+- [x] Download works offline after an online visit — `e2e` job, `e2e/expense-extras.spec.ts` (`@export @offline`), phone and desktop
+- [x] The list shows "by <name>"; the edit form shows who added and who last edited it — `e2e/expense-extras.spec.ts` and `e2e/expenses.spec.ts` (`@expenses`)
+- [x] "Where the money went" shows with no budget, sorted by spend; tapping a category filters Expenses — `e2e/expense-extras.spec.ts` (`@money`)
+- [x] Unit: category breakdown (sorting, percentages, your family's share) — `report.test.ts`
+- [x] The dark-theme scan stays green — `e2e/theme.spec.ts` (`@theme`)
+
+### Unverified (manual) criteria
+- [ ] The file opens correctly in Google Sheets on a phone.
+
+### Deviations
+- Spreadsheet cells that start with `= + - @` get a leading `'` so a spreadsheet shows them as text instead of running them as formulas.
+- "Last edited by" also shows when the same person edits more than a minute after adding, not only when someone else edits.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.
