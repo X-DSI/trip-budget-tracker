@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router';
 import { NAV_ITEMS } from './nav';
 import { AppLogo } from '../Icons';
+import { AppFooter } from '../AppFooter';
 
 /** Desktop navigation (≥ lg). */
 export function Sidebar() {
@@ -33,6 +34,7 @@ export function Sidebar() {
           ))}
         </ul>
       </nav>
+      <AppFooter layout="sidebar" className="border-t border-slate-200" />
     </aside>
   );
 }
