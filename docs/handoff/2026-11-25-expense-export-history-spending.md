@@ -1,10 +1,10 @@
 ---
 title: Expense spreadsheet, who-changed-what, and where the money went
-status: open
+status: in-progress
 assignee: X-DSI-agent
 base_sha: 12a32c9
 adrs: [2026-11-23-offline-first-pwa.md]
-plan_pr: null
+plan_pr: 18
 impl_pr: null
 review: auto
 ---
