@@ -13,6 +13,7 @@ import {
   type ItemRow,
   type TripExpense,
 } from './model';
+import { changeLines } from './report';
 import { Button, Field, inputClass } from '../../components/ui';
 import { readString, writeString } from '../../lib/storage';
 import { formatDate } from '../../lib/dates';
@@ -87,6 +88,7 @@ export function ExpenseSheetBody({
       expense={expense}
       uid={uid}
       today={today}
+      memberName={memberName}
       onDone={onDone}
     />
   );
@@ -99,6 +101,7 @@ function ExpenseFormView({
   expense,
   uid,
   today,
+  memberName,
   onDone,
 }: {
   trip: Trip;
@@ -107,6 +110,7 @@ function ExpenseFormView({
   expense: TripExpense | null;
   uid: string;
   today: string;
+  memberName: (uid: string) => string;
   onDone: () => void;
 }) {
   const [form, setForm] = useState<ExpenseForm>(() =>
@@ -139,6 +143,7 @@ function ExpenseFormView({
 
   return (
     <form onSubmit={submit} noValidate className="space-y-5" data-testid="expense-form">
+      {expense && <ChangedBy expense={expense} memberName={memberName} trip={trip} />}
       <Field label="Amount (₹)" error={err('amount')}>
         {(id, d) => (
           <input
@@ -582,11 +587,31 @@ function ExpenseDetails({
       )}
       <SharePreview families={families} preview={shares} />
       {expense.note && <p className="text-sm text-slate-600">{expense.note}</p>}
+      <ChangedBy expense={expense} memberName={memberName} trip={trip} />
       <p className="text-xs text-slate-500">
-        Added by {memberName(expense.createdBy)}
-        {expense.updatedBy !== expense.createdBy && ` · edited by ${memberName(expense.updatedBy)}`}
-        . Only they or an organiser can change it.
+        Only the person who added it or an organiser can change it.
       </p>
     </div>
+  );
+}
+
+/** "Added by Anna on 4 Dec, 9:10 pm" and, if changed later, who changed it and when. */
+function ChangedBy({
+  expense,
+  memberName,
+  trip,
+}: {
+  expense: TripExpense;
+  memberName: (uid: string) => string;
+  trip: Trip;
+}) {
+  return (
+    <p className="text-xs text-slate-500" data-testid="expense-changed-by">
+      {changeLines(expense, memberName, trip.timezone).map((line, i) => (
+        <span key={i} className="block">
+          {line}
+        </span>
+      ))}
+    </p>
   );
 }

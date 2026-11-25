@@ -50,6 +50,10 @@ function toExpense(snap: QueryDocumentSnapshot): TripExpense {
       d.createdAt && typeof d.createdAt.toMillis === 'function'
         ? d.createdAt.toMillis()
         : undefined,
+    updatedAtMs:
+      d.updatedAt && typeof d.updatedAt.toMillis === 'function'
+        ? d.updatedAt.toMillis()
+        : undefined,
   };
 }
 
