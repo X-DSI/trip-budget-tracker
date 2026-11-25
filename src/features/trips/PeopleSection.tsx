@@ -35,7 +35,7 @@ export function PeopleSection({
   );
 
   return (
-    <section>
+    <section id="people" className="scroll-mt-20">
       <SectionHeader title="People" subtitle={`${members.length} joined`} />
       <ul className="divide-y divide-slate-100 rounded-2xl bg-white ring-1 ring-slate-200">
         {sorted.map((m) => {
@@ -111,7 +111,7 @@ export function InviteSection({
 
   async function share(code: string) {
     const url = inviteLink(window.location.origin, code);
-    const text = `Join "${trip.name}" on Trip Budget to plan and split expenses together.`;
+    const text = `Join "${trip.name}" on Trip Planner to plan and split expenses together.`;
     try {
       if (navigator.share) {
         await navigator.share({ title: trip.name, text, url });
@@ -130,7 +130,7 @@ export function InviteSection({
   }
 
   return (
-    <section>
+    <section id="invite" className="scroll-mt-20">
       <SectionHeader
         title="Invite people"
         subtitle="Share the link in your group chat. Each adult signs in with Google and picks their family."

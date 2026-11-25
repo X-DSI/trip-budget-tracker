@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isIOS, isIOSSafari, shouldShowInstallHint, type PlatformInfo } from './platform';
+import {
+  installSteps,
+  isIOS,
+  isIOSSafari,
+  shouldShowInstallHint,
+  type PlatformInfo,
+} from './platform';
 
 const iphoneSafari =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1';
@@ -34,5 +40,12 @@ describe('platform detection', () => {
     expect(shouldShowInstallHint(p(iphoneSafari))).toBe(true);
     expect(shouldShowInstallHint(p(iphoneSafari, { standalone: true }))).toBe(false);
     expect(shouldShowInstallHint(p(android))).toBe(false);
+  });
+
+  it('gives install steps that fit the browser', () => {
+    expect(installSteps(p(iphoneSafari))).toMatch(/Share, then Add to Home Screen/);
+    expect(installSteps(p(iphoneChrome))).toMatch(/Open this page in Safari/);
+    expect(installSteps(p(android))).toMatch(/Install app/);
+    expect(installSteps(p(ipadAsMac))).toMatch(/address bar/);
   });
 });

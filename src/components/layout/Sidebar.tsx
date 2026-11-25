@@ -11,7 +11,7 @@ export function Sidebar() {
     >
       <div className="flex items-center gap-3 px-6 py-5">
         <AppLogo className="h-9 w-9" />
-        <span className="text-lg font-semibold text-slate-900">Trip Budget</span>
+        <span className="text-lg font-semibold text-slate-900">Trip Planner</span>
       </div>
       <nav aria-label="Main" className="flex-1 px-3">
         <ul className="space-y-1">

@@ -22,7 +22,7 @@ import { Countdown } from './Countdown';
 import { lineForDay, tripPhase, type TripPhase } from './phase';
 import { firstName } from '../../lib/names';
 import { formatDateRange } from '../../lib/dates';
-import { currentPlatform } from '../../lib/platform';
+import { currentPlatform, installSteps, type PlatformInfo } from '../../lib/platform';
 import { Card } from '../../components/ui';
 import { useExpenses } from '../expenses/expenses.data';
 import { formatINR, splitExpense } from '../../domain';
@@ -83,15 +83,17 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
 
   const stats = (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Stat label="Days" value={String(phase.totalDays)} />
-      <Stat label="Families" value={String(people.families)} />
+      <Stat label="Days" value={String(phase.totalDays)} to="/itinerary" />
+      <Stat label="Families" value={String(people.families)} to="/trip#families" />
       <Stat
         label="People"
+        to="/trip#people"
         value={String(people.adults + people.kids)}
         detail={people.kids ? `${people.adults} adults · ${people.kids} kids` : undefined}
       />
       <Stat
         label="Distance"
+        to="/itinerary"
         value={travel.totalKm != null ? `${travel.totalKm.toLocaleString('en-IN')} km` : '—'}
         detail={travel.cars ? `${travel.cars} car${travel.cars === 1 ? '' : 's'}` : undefined}
       />
@@ -149,7 +151,8 @@ function TripDashboard({ trip, name, phase }: { trip: Trip; name: string; phase:
           adults={people.adults}
           joined={members.length}
           hasFamily={!!me?.familyId}
-          installed={currentPlatform().standalone}
+          platform={currentPlatform()}
+          canEdit={canEdit}
           budgetLines={budget.length}
           budgetTotal={budget.reduce((s, l) => s + l.amountPaise, 0)}
         />
@@ -226,13 +229,34 @@ function TripLine({ trip }: { trip: Trip }) {
   );
 }
 
-function Stat({ label, value, detail }: { label: string; value: string; detail?: string }) {
+function Stat({
+  label,
+  value,
+  detail,
+  to,
+}: {
+  label: string;
+  value: string;
+  detail?: string;
+  to: string;
+}) {
   return (
-    <Card className="!p-4">
-      <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
-      {detail && <p className="text-xs text-slate-500">{detail}</p>}
-    </Card>
+    <Link
+      to={to}
+      className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+      data-testid={`stat-${label.toLowerCase()}`}
+    >
+      <Card className="h-full !p-4 transition group-hover:ring-teal-300 group-active:bg-slate-50">
+        <p className="flex items-center justify-between text-xs font-medium tracking-wide text-slate-500 uppercase">
+          {label}
+          <span aria-hidden="true" className="text-slate-400 group-hover:text-teal-600">
+            ›
+          </span>
+        </p>
+        <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
+        {detail && <p className="text-xs text-slate-500">{detail}</p>}
+      </Card>
+    </Link>
   );
 }
 
@@ -240,17 +264,20 @@ function Checklist({
   adults,
   joined,
   hasFamily,
-  installed,
+  platform,
+  canEdit,
   budgetLines,
   budgetTotal,
 }: {
   adults: number;
   joined: number;
   hasFamily: boolean;
-  installed: boolean;
+  platform: PlatformInfo;
+  canEdit: boolean;
   budgetLines: number;
   budgetTotal: number;
 }) {
+  const installed = platform.standalone;
   const items: { done: boolean; label: string; detail: ReactNode; disabled?: boolean }[] = [
     {
       done: adults > 0 && joined >= adults,
@@ -258,21 +285,28 @@ function Checklist({
       detail:
         adults > 0 ? (
           <>
-            {joined} of {adults} adults · <Link to="/trip">share the invite</Link>
+            {joined} of {adults} adults ·{' '}
+            {canEdit ? (
+              <Link to="/trip#invite">share the invite</Link>
+            ) : (
+              <Link to="/trip#people">see who's joined</Link>
+            )}
           </>
+        ) : canEdit ? (
+          <Link to="/trip#families">Add the families first</Link>
         ) : (
-          <Link to="/trip">Add the families first</Link>
+          'Waiting for the organisers to add the families'
         ),
     },
     {
       done: hasFamily,
       label: "You've picked your family",
-      detail: hasFamily ? 'Done' : <Link to="/trip">Choose it on the Trip tab</Link>,
+      detail: hasFamily ? 'Done' : <Link to="/trip#your-family">Choose it on the Trip tab</Link>,
     },
     {
       done: installed,
       label: 'App installed on this phone',
-      detail: installed ? 'Works with no signal' : 'Add to Home Screen so it opens offline',
+      detail: installed ? 'Works with no signal' : installSteps(platform),
     },
     {
       done: budgetLines > 0,
@@ -281,10 +315,12 @@ function Checklist({
         budgetLines > 0 ? (
           <>
             {formatINR(budgetTotal)} over {budgetLines} line{budgetLines === 1 ? '' : 's'} ·{' '}
-            <Link to="/trip">see each family's share</Link>
+            <Link to="/money/budget">see each family's share</Link>
           </>
+        ) : canEdit ? (
+          <Link to="/money/budget">Add it under Money → Budget</Link>
         ) : (
-          <Link to="/trip">Organisers add it on the Trip tab</Link>
+          'The organisers will add it under Money → Budget'
         ),
     },
   ];

@@ -32,3 +32,12 @@ export function isIOSSafari(p: PlatformInfo): boolean {
 export function shouldShowInstallHint(p: PlatformInfo): boolean {
   return isIOSSafari(p) && !p.standalone;
 }
+
+/** One line telling this phone or computer how to install the app. */
+export function installSteps(p: PlatformInfo): string {
+  if (isIOSSafari(p)) return 'In Safari, tap Share, then Add to Home Screen';
+  if (isIOS(p)) return 'Open this page in Safari, then tap Share → Add to Home Screen';
+  if (/Android/.test(p.userAgent))
+    return 'In Chrome, tap ⋮, then Install app or Add to Home screen';
+  return 'Use the install icon in the address bar, or the browser menu → Install';
+}

@@ -30,7 +30,7 @@ export function YourFamilyCard({
   const owner = ownerNameOf(trip, members) || 'the organiser';
 
   return (
-    <section>
+    <section id="your-family" className="scroll-mt-20">
       <h2 className="mb-3 text-lg font-semibold text-slate-900">Your family</h2>
       <Card className="space-y-4" data-testid="your-family">
         {family ? (
