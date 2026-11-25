@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { signIn } from './helpers';
 import { addFamily, createTrip, openAddExpense, pickMyFamily } from './trip-helpers';
@@ -10,6 +11,9 @@ async function addExpense(page: Page, amount: string, title: string, category: s
   await sheet.getByText('Equal per family', { exact: true }).click();
   await sheet.getByRole('button', { name: 'Add expense' }).click();
   await expect(sheet).toBeHidden();
+  await expect(page.getByTestId('expense-list')).toContainText(title);
+  // The next openAddExpense reloads the page; let this write reach the server first.
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
 }
 
 async function setUp(page: Page, uid: string, tripName: string) {
@@ -42,7 +46,7 @@ test('the expense spreadsheet downloads offline with each family’s share @expo
   await context.setOffline(false);
 
   expect(download.suggestedFilename()).toMatch(/^export-trip-.*-expenses-\d{4}-\d{2}-\d{2}\.csv$/);
-  const text = (await download.createReadStream().toArray()).map(String).join('');
+  const text = await readFile(await download.path(), 'utf8');
   const lines = text
     .replace(/^\uFEFF/, '')
     .trim()
@@ -62,7 +66,10 @@ test('where the money went shows without a budget and filters expenses @money', 
 
   // Who added it shows in the list and in the edit form.
   await expect(page.getByTestId('expense-added-by').first()).toHaveText('by you');
-  await page.getByText('Dinner', { exact: true }).click();
+  await page
+    .getByTestId('expense-list')
+    .getByRole('button', { name: /Dinner/ })
+    .click();
   await expect(page.getByTestId('expense-changed-by')).toContainText('Added by you on');
   await page.getByRole('button', { name: 'Close' }).click();
 
