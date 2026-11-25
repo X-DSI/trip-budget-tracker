@@ -3,6 +3,7 @@ import { signOutUser } from '../lib/auth';
 import { useAuth } from '../features/auth/AuthProvider';
 import { MyTrips } from '../features/trips/MyTrips';
 import { ThemeSetting } from '../components/ThemeSetting';
+import { AppFooter } from '../components/AppFooter';
 
 export function MorePage() {
   const { user } = useAuth();
@@ -69,6 +70,8 @@ export function MorePage() {
           </button>
         )}
       </div>
+
+      <AppFooter />
     </section>
   );
 }
