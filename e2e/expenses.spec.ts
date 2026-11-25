@@ -60,6 +60,12 @@ test('a per-head dinner splits exactly, and only its creator or an organiser can
   await page.goto('/expenses');
   await page.getByText('Fuel top-up').click();
   await expect(page.getByRole('button', { name: 'Save changes' })).toBeVisible();
+  // The organiser sees who added it, and after saving a change, who last edited it.
+  await expect(page.getByTestId('expense-changed-by')).toContainText('Added by Gita Guest on');
+  await page.getByLabel('Amount (₹)').fill('2100');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await page.getByText('Fuel top-up').click();
+  await expect(page.getByTestId('expense-changed-by')).toContainText('Last edited by you on');
 });
 
 test('an expense added offline shows at once and syncs later @expenses @offline', async ({

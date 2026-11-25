@@ -7,7 +7,16 @@ import { NoTripCard } from '../trips/NoTripCard';
 import { useFamilies, useMembers } from '../trips/trips.data';
 import { isOrganizer, type Trip } from '../trips/model';
 import { useExpenses } from './expenses.data';
-import { canEditExpense, categoryOf, groupByDay, splitLabel, type TripExpense } from './model';
+import {
+  CATEGORIES,
+  canEditExpense,
+  categoryOf,
+  groupByDay,
+  splitLabel,
+  type TripExpense,
+} from './model';
+import { expensesToCsv } from './report';
+import { csvFileName, saveTextFile } from './download';
 import { ExpenseSheetBody, FamilyDot } from './ExpenseSheet';
 import { Button, Card, EmptyState, Sheet } from '../../components/ui';
 import { formatDate } from '../../lib/dates';
@@ -46,8 +55,14 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
   );
   // Drop ?add=1 once used, so reloading or going back doesn't reopen the sheet.
   useEffect(() => {
-    if (params.has('add')) setParams({}, { replace: true });
+    if (params.has('add')) {
+      const next = new URLSearchParams(params);
+      next.delete('add');
+      setParams(next, { replace: true });
+    }
   }, [params, setParams]);
+  const categoryParam = params.get('category');
+  const category = CATEGORIES.some((c) => c.value === categoryParam) ? categoryParam : null;
 
   const organizer = isOrganizer(trip, uid);
   const myFamilyId = members.find((m) => m.uid === uid)?.familyId ?? null;
@@ -57,6 +72,13 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
   );
   const memberName = (id: string) =>
     id === uid ? 'you' : (members.find((m) => m.uid === id)?.displayName ?? 'someone');
+  const shown = category ? expenses.filter((e) => e.category === category) : expenses;
+
+  function download() {
+    const realName = (id: string) => members.find((m) => m.uid === id)?.displayName ?? 'Someone';
+    const csv = expensesToCsv(expenses, families, trip.kidWeight, realName);
+    void saveTextFile(csvFileName(trip.name, today), csv, 'text/csv');
+  }
 
   const totals = useMemo(() => {
     const total = expenses.reduce((s, e) => s + e.amountPaise, 0);
@@ -101,6 +123,34 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
         </p>
       )}
 
+      {hasFamilies && expenses.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {category ? (
+            <p
+              className="flex items-center gap-2 rounded-full bg-teal-50 py-1 pr-1 pl-3 text-sm text-teal-900 ring-1 ring-teal-200"
+              data-testid="category-filter"
+            >
+              <span>
+                <span aria-hidden="true">{categoryOf(category).emoji}</span> Only{' '}
+                {categoryOf(category).label.toLowerCase()}
+              </span>
+              <button
+                type="button"
+                onClick={() => setParams({}, { replace: true })}
+                className="rounded-full px-2 py-0.5 font-medium text-teal-800 hover:bg-teal-100"
+              >
+                Show all
+              </button>
+            </p>
+          ) : (
+            <span />
+          )}
+          <Button variant="secondary" onClick={download} data-testid="download-expenses">
+            Download spreadsheet
+          </Button>
+        </div>
+      )}
+
       {!hasFamilies ? (
         <EmptyState>
           Add the families on the{' '}
@@ -113,7 +163,12 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
         <EmptyState>No expenses yet. Tap “Add expense” when someone pays for something.</EmptyState>
       ) : (
         <div className="space-y-6" data-testid="expense-list">
-          {groupByDay(expenses).map(([day, list]) => (
+          {shown.length === 0 && (
+            <EmptyState>
+              No {categoryOf(category ?? 'other').label.toLowerCase()} expenses yet.
+            </EmptyState>
+          )}
+          {groupByDay(shown).map(([day, list]) => (
             <section key={day}>
               <div className="mb-2 flex items-baseline justify-between">
                 <h2 className="font-semibold text-slate-900">
@@ -146,6 +201,12 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
                           <span className="flex items-center gap-1.5 truncate text-sm text-slate-600">
                             {payer && <FamilyDot family={payer} />}
                             {payer?.name ?? 'Unknown family'} · {splitLabel(e.splitMode)}
+                          </span>
+                          <span
+                            className="block truncate text-xs text-slate-500"
+                            data-testid="expense-added-by"
+                          >
+                            by {memberName(e.createdBy)}
                           </span>
                         </span>
                         <span className="text-right">

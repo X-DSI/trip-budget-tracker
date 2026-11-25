@@ -6,6 +6,7 @@ import { isOrganizer, type Trip } from '../trips/model';
 import { BudgetSection } from '../budget/BudgetSection';
 import { useBudget } from '../budget/budget.data';
 import { useExpenses } from '../expenses/expenses.data';
+import { SpendingCard } from './SpendingCard';
 
 export function BudgetPage() {
   const { user } = useAuth();
@@ -39,6 +40,12 @@ function TripBudget({ trip, uid }: { trip: Trip; uid: string }) {
         myFamilyId={myFamilyId}
         canEdit={canEdit}
         uid={uid}
+      />
+      <SpendingCard
+        expenses={expenses}
+        families={families}
+        kidWeight={trip.kidWeight}
+        myFamilyId={myFamilyId}
       />
     </div>
   );
