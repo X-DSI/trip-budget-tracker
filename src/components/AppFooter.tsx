@@ -24,7 +24,7 @@ export function AppFooter({
       <p className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${align}`}>
         {commit ? (
           <a
-            href={REPO_URL + '/commit/' + commit}
+            href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="tabular-nums hover:underline"
