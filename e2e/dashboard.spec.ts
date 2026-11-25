@@ -65,9 +65,12 @@ test('the Home stats and Get ready links open the right place @dashboard', async
   await page.getByLabel('Ends').fill(istDate(12));
   await page.getByRole('button', { name: 'Create trip' }).click();
   await expect(page).toHaveURL('/trip');
+  // Let the new trip reach the server before any full page load (a reload can drop unsent writes).
+  await expect(page.getByTestId('pending-sync')).toBeHidden({ timeout: 15_000 });
 
+  // Go Home through the app, not page.goto, so each step is a normal in-app navigation.
   const home = async () => {
-    await page.goto('/');
+    await page.getByRole('link', { name: 'Home' }).first().click();
     await expect(page.getByTestId('dashboard')).toHaveAttribute('data-phase', 'before');
   };
 
