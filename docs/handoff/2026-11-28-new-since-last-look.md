@@ -1,11 +1,11 @@
 ---
 title: "New since you last looked" on Expenses
-status: open
+status: done
 assignee: X-DSI-agent
 base_sha: 2056ec5
 adrs: [2026-11-23-offline-first-pwa.md]
-plan_pr: null
-impl_pr: null
+plan_pr: 23
+impl_pr: 24
 review: auto
 ---
 
@@ -47,3 +47,25 @@ Anything that needs a rules or data-model change.
 
 ## Attached content
 None.
+
+## Outcome
+**Status:** done  
+**Commits:** c686169..8ac7abc · **PR:** #24 · **CI run:** see PR #24 checks
+
+### Verified acceptance criteria
+- [x] Counting rules (others only, new vs edited, deleted ignored, first visit) — unit job, `src/features/expenses/unseen.test.ts`
+- [x] Another adult's new expense shows a count on the Expenses tab, a **New** row, and the count clears after viewing — `e2e` job, `e2e/unseen.spec.ts` (`@unseen`)
+- [x] Works on phone (bottom tabs) and desktop (sidebar) — `e2e/unseen.spec.ts` runs on both projects; `AppShell.test.tsx` checks both badges
+
+### Unverified (manual) criteria
+- [ ] Readable in light and dark.
+
+### Deviations
+- On a phone's first visit the starting point waits for server data, not cached data, so an empty cache can't make every expense look new.
+- The badge shows "9+" above nine.
+
+### New decisions
+- None.
+
+### Questions for the planner
+- None.

@@ -1,10 +1,13 @@
 import { NavLink } from 'react-router';
 import { NAV_ITEMS } from './nav';
+import { NavBadge, badgeLabel } from './NavBadge';
+import { useUnseenExpenses } from '../../features/expenses/useUnseen';
 import { AppLogo } from '../Icons';
 import { AppFooter } from '../AppFooter';
 
 /** Desktop navigation (≥ lg). */
 export function Sidebar() {
+  const { count: unseen } = useUnseenExpenses();
   return (
     <aside
       data-testid="sidebar"
@@ -16,22 +19,27 @@ export function Sidebar() {
       </div>
       <nav aria-label="Main" className="flex-1 px-3">
         <ul className="space-y-1">
-          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                    isActive ? 'bg-teal-50 text-teal-800' : 'text-slate-600 hover:bg-slate-100'
-                  }`
-                }
-              >
-                <Icon className="h-5 w-5" />
-                {label}
-              </NavLink>
-            </li>
-          ))}
+          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => {
+            const count = to === '/expenses' ? unseen : 0;
+            return (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end={end}
+                  aria-label={badgeLabel(label, count)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${
+                      isActive ? 'bg-teal-50 text-teal-800' : 'text-slate-600 hover:bg-slate-100'
+                    }`
+                  }
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="flex-1">{label}</span>
+                  <NavBadge count={count} className="!text-xs !leading-5 min-w-5" />
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       <AppFooter layout="sidebar" className="border-t border-slate-200" />

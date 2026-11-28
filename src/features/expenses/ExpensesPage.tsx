@@ -16,6 +16,8 @@ import {
   type TripExpense,
 } from './model';
 import { expensesToCsv } from './report';
+import { unseenExpenses } from './unseen';
+import { useUnseenExpenses } from './useUnseen';
 import { csvFileName, saveTextFile } from './download';
 import { ExpenseSheetBody, FamilyDot } from './ExpenseSheet';
 import { Button, Card, EmptyState, Sheet } from '../../components/ui';
@@ -73,6 +75,23 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
   const memberName = (id: string) =>
     id === uid ? 'you' : (members.find((m) => m.uid === id)?.displayName ?? 'someone');
   const shown = category ? expenses.filter((e) => e.category === category) : expenses;
+
+  // Rows someone else added or edited since this phone last showed the page keep their "New" or
+  // "Edited" label until you leave; the tab's count clears as soon as the page is on screen.
+  const { seenAt, markSeen } = useUnseenExpenses();
+  const [seenAtOnOpen] = useState(seenAt);
+  const highlight = useMemo(
+    () => unseenExpenses(expensesState.data, uid, seenAtOnOpen),
+    [expensesState.data, uid, seenAtOnOpen],
+  );
+  useEffect(() => {
+    const markIfVisible = () => {
+      if (document.visibilityState === 'visible') markSeen();
+    };
+    markIfVisible();
+    document.addEventListener('visibilitychange', markIfVisible);
+    return () => document.removeEventListener('visibilitychange', markIfVisible);
+  }, [markSeen]);
 
   function download() {
     const realName = (id: string) => members.find((m) => m.uid === id)?.displayName ?? 'Someone';
@@ -184,19 +203,31 @@ function TripExpenses({ trip, uid }: { trip: Trip; uid: string }) {
                   const mine = myFamilyId
                     ? safeShares(e, families, trip.kidWeight)[myFamilyId]
                     : undefined;
+                  const fresh = highlight.get(e.id);
                   return (
                     <li key={e.id}>
                       <button
                         type="button"
                         onClick={() => setOpen(e)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50"
+                        className={`flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 ${
+                          fresh ? 'bg-teal-50' : ''
+                        }`}
+                        data-unseen={fresh}
                       >
                         <span className="text-2xl" aria-hidden="true">
                           {categoryOf(e.category).emoji}
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate font-medium text-slate-900">
-                            {e.title}
+                          <span className="flex items-center gap-2">
+                            <span className="truncate font-medium text-slate-900">{e.title}</span>
+                            {fresh && (
+                              <span
+                                className="shrink-0 rounded-full bg-teal-600 px-1.5 py-px text-[10px] font-semibold tracking-wide text-white uppercase"
+                                data-testid="unseen-label"
+                              >
+                                {fresh === 'new' ? 'New' : 'Edited'}
+                              </span>
+                            )}
                           </span>
                           <span className="flex items-center gap-1.5 truncate text-sm text-slate-600">
                             {payer && <FamilyDot family={payer} />}
