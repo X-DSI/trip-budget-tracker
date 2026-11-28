@@ -6,6 +6,9 @@ import { titleForPath } from './nav';
 
 vi.mock('virtual:pwa-register/react', () => ({ useRegisterSW: vi.fn() }));
 vi.mock('../../features/trips/TripSwitcher', () => ({ TripSwitcher: () => null }));
+vi.mock('../../features/expenses/useUnseen', () => ({
+  useUnseenExpenses: () => ({ unseen: new Map(), count: 2, seenAt: 0, markSeen: () => {} }),
+}));
 
 describe('titleForPath', () => {
   it('names each tab and its sub-pages', () => {
@@ -36,6 +39,8 @@ describe('AppShell', () => {
     expect(screen.getByTestId('sidebar')).toHaveClass('hidden', 'lg:flex');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Home');
     // Five tabs in each navigation.
-    expect(screen.getAllByRole('link', { name: 'Expenses' })).toHaveLength(2);
+    // The Expenses item carries the "new since you last looked" count in both.
+    expect(screen.getAllByRole('link', { name: 'Expenses, 2 new' })).toHaveLength(2);
+    expect(screen.getAllByTestId('nav-badge').map((b) => b.textContent)).toEqual(['2', '2']);
   });
 });
