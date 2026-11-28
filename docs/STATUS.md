@@ -28,6 +28,7 @@
 | 8 | [Dashboard additions](handoff/2026-11-24-dashboard-additions.md) | 6, 7 | X-DSI-agent · **done** (#15) | human | Fri 27 Nov |
 | 9 | [Dark theme](handoff/2026-11-24-dark-theme.md) | 6, 7, 8 | X-DSI-agent · **done** (#16) | auto | Sat 28 Nov |
 | 10 | [Expense spreadsheet, who changed what, where the money went](handoff/2026-11-25-expense-export-history-spending.md) | — | X-DSI-agent · **done** (#19) | auto | Fri 27 Nov |
+| 11 | ["New since you last looked" on Expenses](handoff/2026-11-28-new-since-last-look.md) | — | X-DSI-agent · in progress | auto | Sun 29 Nov |
 
 ## Next
 
