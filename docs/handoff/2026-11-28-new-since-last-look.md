@@ -1,10 +1,10 @@
 ---
 title: "New since you last looked" on Expenses
-status: open
+status: in-progress
 assignee: X-DSI-agent
 base_sha: 2056ec5
 adrs: [2026-11-23-offline-first-pwa.md]
-plan_pr: null
+plan_pr: 23
 impl_pr: null
 review: auto
 ---
